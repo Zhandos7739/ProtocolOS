@@ -63,3 +63,4 @@ systemd-zram-generator
 earlyoom
 preload
 linux-cpupower
+user-setup
