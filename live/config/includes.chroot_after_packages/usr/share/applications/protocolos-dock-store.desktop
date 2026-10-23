@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Магазин
+Exec=plasma-discover
+Icon=protocolos-store
+StartupWMClass=plasma-discover
+NoDisplay=true
+Terminal=false

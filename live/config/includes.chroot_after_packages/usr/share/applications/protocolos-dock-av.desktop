@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Защита
+Exec=clamtk
+Icon=protocolos-antivirus
+StartupWMClass=clamtk
+NoDisplay=true
+Terminal=false

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Системный монитор
+Exec=plasma-systemmonitor
+Icon=protocolos-monitor
+StartupWMClass=plasma-systemmonitor
+NoDisplay=true
+Terminal=false

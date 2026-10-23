@@ -21,7 +21,7 @@ sed -i 's/^ENABLED=.*/ENABLED=yes/' /etc/ufw/ufw.conf 2>/dev/null
 C=/etc/opensnitchd/default-config.json; if [ -f $C ]; then
   python3 - "$C" <<'PY'
 import json,sys; p=sys.argv[1]; c=json.load(open(p))
-c["DefaultAction"]="deny"; c["DefaultDuration"]="once"; c["InterceptUnknown"]=True; c["ProcMonitorMethod"]="ebpf"
+c["DefaultAction"]="deny"; c["DefaultDuration"]="once"; c["InterceptUnknown"]=True; c["ProcMonitorMethod"]="proc"
 json.dump(c,open(p,"w"),indent=2)
 PY
 fi
@@ -49,3 +49,16 @@ fi
 # GRUB timeout для установленной системы
 [ -f /etc/default/grub ] && sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
 log done
+# Ярлыки рабочего стола исполняемые (иначе Plasma 6 рисует "!")
+chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null
+# Установщик: своё имя вместо "Install Debian"
+for f in $(grep -rl "Install Debian" /usr/share/applications /etc/skel 2>/dev/null); do sed -i 's/^Name\(\[[a-zA-Z_]*\]\)\?=.*/Name=Установить ProtocolOS/' "$f"; chmod +x "$f"; done
+# Стеклянная тема Plasma: недостающие элементы берём из breeze-dark/default (наши файлы не перезаписываются)
+T=/usr/share/plasma/desktoptheme/protocolos-glass
+for src in breeze-dark default; do
+  [ -d /usr/share/plasma/desktoptheme/$src ] && cp -rn /usr/share/plasma/desktoptheme/$src/. "$T"/ 2>/dev/null || true
+done
+rm -f "$T"/metadata.desktop
+for f in widgets/panel-background dialogs/background widgets/tooltip; do rm -f "$T/$f.svgz"; done
+# Иконки ProtocolOS
+gtk-update-icon-cache -f -q /usr/share/icons/hicolor 2>/dev/null || true

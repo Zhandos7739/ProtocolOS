@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Настройки
+Exec=systemsettings
+Icon=protocolos-settings
+StartupWMClass=systemsettings
+NoDisplay=true
+Terminal=false

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Терминал
+Exec=konsole
+Icon=protocolos-terminal
+StartupWMClass=konsole
+NoDisplay=true
+Terminal=false

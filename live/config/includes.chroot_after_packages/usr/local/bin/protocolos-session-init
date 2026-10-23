@@ -18,5 +18,5 @@ lnk 4-pics Изображения folder-pictures "file://$(xdg-user-dir PICTURE
 lnk 5-system Система folder-root "file:///"
 lnk 6-trash Корзина user-trash "trash:/"
 # Доверить ярлыки на рабочем столе (Plasma 6 спрашивает при первом запуске)
-for f in "$(xdg-user-dir DESKTOP)"/*.desktop; do [ -e "$f" ] && gio set "$f" metadata::trusted true 2>/dev/null; done
+for f in "$(xdg-user-dir DESKTOP)"/*.desktop; do [ -e "$f" ] && chmod +x "$f" && gio set "$f" metadata::trusted true 2>/dev/null; done
 touch "$HOME/.config/protocolos-session-init.done"
