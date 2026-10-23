@@ -1,0 +1,5 @@
+[Unit]
+Description=ProtocolOS: weekly re-ask of network permissions
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/protocolos/net-reask.sh

@@ -1,0 +1,7 @@
+[Unit]
+Description=ProtocolOS: weekly re-ask of network permissions
+[Timer]
+OnCalendar=weekly
+Persistent=true
+[Install]
+WantedBy=timers.target
