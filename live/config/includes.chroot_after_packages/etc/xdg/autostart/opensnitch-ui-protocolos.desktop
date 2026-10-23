@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=OpenSnitch UI
+Exec=opensnitch-ui --background
+Icon=opensnitch-ui
+NoDisplay=true

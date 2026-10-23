@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Файлы
+GenericName=Менеджер
+Exec=dolphin
+Icon=system-file-manager
+Terminal=false

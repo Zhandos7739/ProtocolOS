@@ -1,0 +1,12 @@
+[kdeglobals][General]
+ColorScheme=BreezeDark
+widgetStyle=kvantum
+
+[kdeglobals][Icons]
+Theme=Papirus-Dark
+
+[plasmarc][Theme]
+name=breeze-dark
+
+[Wallpaper]
+Image=ProtocolOS

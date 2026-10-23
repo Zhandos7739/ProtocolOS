@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Запись экрана
+GenericName=Kooha
+Exec=kooha
+Icon=io.github.seadve.Kooha
+Terminal=false

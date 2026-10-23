@@ -1,0 +1,1 @@
+{"created":"2026-10-22T00:00:00Z","updated":"2026-10-22T00:00:00Z","name":"005-allow-apt","enabled":true,"precedence":false,"action":"allow","duration":"always","operator":{"type":"regexp","operand":"process.path","sensitive":false,"data":"^/usr/lib/apt/methods/https?$","list":[]}}

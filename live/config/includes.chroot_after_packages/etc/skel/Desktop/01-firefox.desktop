@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Firefox
+GenericName=Браузер
+Exec=firefox-esr %u
+Icon=firefox-esr
+Terminal=false

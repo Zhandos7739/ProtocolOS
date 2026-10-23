@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=OBS Studio
+GenericName=Запись и стрим
+Exec=obs
+Icon=com.obsproject.Studio
+Terminal=false

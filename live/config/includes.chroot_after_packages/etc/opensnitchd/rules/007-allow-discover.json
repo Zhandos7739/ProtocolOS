@@ -1,0 +1,1 @@
+{"created":"2026-10-22T00:00:00Z","updated":"2026-10-22T00:00:00Z","name":"007-allow-discover","enabled":true,"precedence":false,"action":"allow","duration":"always","operator":{"type":"simple","operand":"process.path","sensitive":false,"data":"/usr/bin/plasma-discover","list":[]}}

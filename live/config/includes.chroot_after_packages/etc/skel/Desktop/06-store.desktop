@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Магазин
+GenericName=Приложения
+Exec=plasma-discover
+Icon=plasmadiscover
+Terminal=false

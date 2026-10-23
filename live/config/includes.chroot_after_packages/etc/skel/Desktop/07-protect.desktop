@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Защита
+GenericName=ClamAV · Антивирус
+Exec=clamtk
+Icon=security-high
+Terminal=false

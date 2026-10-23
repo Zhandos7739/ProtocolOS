@@ -1,0 +1,16 @@
+[Plugins]
+blurEnabled=true
+contrastEnabled=true
+slidingpopupsEnabled=true
+wobblywindowsEnabled=false
+[Effect-blur]
+BlurStrength=10
+NoiseStrength=2
+[Compositing]
+LatencyPolicy=Low
+AllowTearing=false
+[ModifierOnlyShortcuts]
+Meta=org.kde.plasmashell,/PlasmaShell,org.kde.PlasmaShell,activateLauncherMenu
+[org.kde.kdecoration2]
+ButtonsOnLeft=XIA
+ButtonsOnRight=

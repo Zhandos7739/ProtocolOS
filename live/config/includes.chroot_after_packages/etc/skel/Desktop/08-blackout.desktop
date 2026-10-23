@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Blackout
+GenericName=Отключить всю сеть
+Exec=konsole --hold -e /usr/local/bin/protocolos-blackout toggle
+Icon=network-offline
+Terminal=false

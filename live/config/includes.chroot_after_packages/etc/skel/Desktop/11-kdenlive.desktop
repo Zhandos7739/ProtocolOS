@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Kdenlive
+GenericName=Видеоредактор
+Exec=kdenlive
+Icon=kdenlive
+Terminal=false

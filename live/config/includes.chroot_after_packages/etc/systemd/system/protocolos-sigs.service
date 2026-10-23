@@ -1,0 +1,7 @@
+[Unit]
+Description=ProtocolOS extra ClamAV signatures (URLhaus, Sanesecurity)
+After=network-online.target
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/protocolos-sigs-update
+Nice=15

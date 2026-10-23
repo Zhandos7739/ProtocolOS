@@ -1,0 +1,4 @@
+// Локальный активный пользователь из группы sudo может включать Blackout без пароля (экстренная кнопка).
+polkit.addRule(function(action, subject) {
+  if (action.id == "org.protocolos.blackout" && subject.local && subject.active && subject.isInGroup("sudo")) return polkit.Result.YES;
+});

@@ -1,0 +1,12 @@
+#!/bin/bash
+# Первый запуск ProtocolOS (выполняется один раз, systemd: protocolos-firstboot.service)
+set -u; mkdir -p /var/lib/protocolos
+ufw --force default deny incoming; ufw --force default allow outgoing; ufw --force enable
+aa-enforce /etc/apparmor.d/* >/dev/null 2>&1 || true
+if ping -c1 -W3 deb.debian.org >/dev/null 2>&1; then
+  systemctl stop clamav-freshclam; freshclam --quiet || true; systemctl start clamav-freshclam
+  /usr/local/bin/protocolos-sigs-update || true
+  flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+  flatpak info com.discordapp.Discord >/dev/null 2>&1 || flatpak install -y --noninteractive flathub com.discordapp.Discord || true
+  touch /var/lib/protocolos/firstboot.done
+fi

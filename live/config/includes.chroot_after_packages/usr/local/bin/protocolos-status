@@ -1,0 +1,12 @@
+#!/bin/bash
+# Печатает статус защиты в формате key=value (для виджета «Защита»)
+rt=off; systemctl is-active -q clamav-clamonacc 2>/dev/null && rt=on
+av=off; systemctl is-active -q clamav-daemon 2>/dev/null && av=on
+fw=off; grep -qs '^ENABLED=yes' /etc/ufw/ufw.conf && systemctl is-active -q ufw && fw=on
+sn=off; systemctl is-active -q opensnitch 2>/dev/null && sn=on
+aa=$(cat /sys/kernel/security/apparmor/profiles 2>/dev/null | grep -c enforce)
+db=$(stat -c %y /var/lib/clamav/daily.c?d 2>/dev/null | head -1 | cut -c1-16)
+last=$(cat /var/lib/protocolos/lastscan 2>/dev/null || echo "—")
+bo=off; [ -e /run/protocolos-blackout.active ] && bo=on
+echo "realtime=$rt"; echo "clamd=$av"; echo "ufw=$fw"; echo "opensnitch=$sn"
+echo "apparmor=$aa"; echo "db=${db:-нет}"; echo "lastscan=$last"; echo "blackout=$bo"

@@ -1,0 +1,12 @@
+[Unit]
+Description=ProtocolOS first boot setup (ufw, AppArmor, ClamAV sigs, Discord flatpak)
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=!/var/lib/protocolos/firstboot.done
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/protocolos-firstboot
+Nice=10
+IOSchedulingClass=idle
+[Install]
+WantedBy=multi-user.target

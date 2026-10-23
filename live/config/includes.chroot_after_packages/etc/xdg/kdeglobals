@@ -1,0 +1,10 @@
+[General]
+ColorScheme=BreezeDark
+font=Inter,10,-1,5,400,0,0,0,0,0,0,0,0,0,0,1
+widgetStyle=kvantum
+[Icons]
+Theme=Papirus-Dark
+[KDE]
+LookAndFeelPackage=org.protocolos.desktop
+AnimationDurationFactor=0.7
+SingleClick=false

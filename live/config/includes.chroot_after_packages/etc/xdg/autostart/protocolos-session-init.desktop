@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS session init
+Exec=/usr/local/bin/protocolos-session-init
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=1

@@ -1,0 +1,31 @@
+#!/bin/bash
+# ProtocolOS Blackout: мгновенно отключает ВСЮ сеть (nmcli + nftables drop-all) и восстанавливает её.
+# Использование: protocolos-blackout on|off|toggle|status
+set -u
+TABLE=protocolos_blackout
+STATE=/run/protocolos-blackout.active
+if [ "$(id -u)" -ne 0 ]; then exec pkexec /usr/local/bin/protocolos-blackout "$@"; fi
+on() {
+  nft -f - <<NFT
+table inet $TABLE {
+  chain input   { type filter hook input   priority -500; policy drop; iif lo accept; }
+  chain output  { type filter hook output  priority -500; policy drop; oif lo accept; }
+  chain forward { type filter hook forward priority -500; policy drop; }
+}
+NFT
+  nmcli networking off 2>/dev/null || true
+  command -v rfkill >/dev/null && rfkill block all 2>/dev/null || true
+  touch "$STATE"; echo "BLACKOUT: сеть отключена"
+}
+off() {
+  nft delete table inet $TABLE 2>/dev/null || true
+  command -v rfkill >/dev/null && rfkill unblock all 2>/dev/null || true
+  nmcli networking on 2>/dev/null || true
+  rm -f "$STATE"; echo "BLACKOUT снят: сеть восстановлена"
+}
+status() { nft list table inet $TABLE >/dev/null 2>&1 && echo on || echo off; }
+case "${1:-toggle}" in
+  on) on ;; off) off ;; status) status ;;
+  toggle) [ "$(status)" = on ] && off || on ;;
+  *) echo "usage: $0 on|off|toggle|status"; exit 2 ;;
+esac

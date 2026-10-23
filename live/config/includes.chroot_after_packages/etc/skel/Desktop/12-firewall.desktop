@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Сетевой монитор
+GenericName=OpenSnitch
+Exec=opensnitch-ui
+Icon=opensnitch-ui
+Terminal=false

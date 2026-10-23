@@ -1,0 +1,10 @@
+#!/bin/bash
+# Доп. сигнатуры ClamAV: URLhaus (abuse.ch) + Sanesecurity (через HTTP-зеркало).
+# В Debian 13 пакета clamav-unofficial-sigs нет, поэтому лёгкая замена.
+set -u
+D=/var/lib/clamav; T=$(mktemp -d); trap 'rm -rf $T' EXIT
+get() { curl -fsSL --max-time 120 -o "$T/$2" "$1" && clamscan --quiet -d "$T/$2" /etc/hostname >/dev/null 2>&1 && install -m644 -o clamav -g clamav "$T/$2" "$D/$2" && echo "ok $2"; }
+get https://urlhaus.abuse.ch/downloads/urlhaus.ndb urlhaus.ndb
+SANE=https://mirror.rollernet.us/sanesecurity
+for f in junk.ndb jurlbl.ndb phish.ndb rogue.hdb scam.ndb sanesecurity.ftm sigwhitelist.ign2 badmacro.ndb shelter.ldb; do get "$SANE/$f" "$f"; done
+systemctl reload clamav-daemon 2>/dev/null || true

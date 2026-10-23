@@ -1,0 +1,22 @@
+#!/bin/bash
+# Создаёт правую колонку папок рабочего стола (Проекты, Документы, Загрузки, Изображения, Система, Корзина)
+xdg-user-dirs-update
+P=$HOME/.local/share/protocolos/places; mkdir -p "$P"
+DOC=$(xdg-user-dir DOCUMENTS); mkdir -p "$DOC/Проекты"
+lnk(){ cat > "$P/$1.desktop" <<E
+[Desktop Entry]
+Type=Link
+Name=$2
+Icon=$3
+URL=$4
+E
+}
+lnk 1-projects Проекты folder-projects "file://$DOC/Проекты"
+lnk 2-docs Документы folder-documents "file://$DOC"
+lnk 3-down Загрузки folder-downloads "file://$(xdg-user-dir DOWNLOAD)"
+lnk 4-pics Изображения folder-pictures "file://$(xdg-user-dir PICTURES)"
+lnk 5-system Система folder-root "file:///"
+lnk 6-trash Корзина user-trash "trash:/"
+# Доверить ярлыки на рабочем столе (Plasma 6 спрашивает при первом запуске)
+for f in "$(xdg-user-dir DESKTOP)"/*.desktop; do [ -e "$f" ] && gio set "$f" metadata::trusted true 2>/dev/null; done
+touch "$HOME/.config/protocolos-session-init.done"

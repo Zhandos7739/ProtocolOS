@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+/usr/local/lib/protocolos/apply-system.sh
+gtk-update-icon-cache -f /usr/share/icons/hicolor 2>/dev/null || true
