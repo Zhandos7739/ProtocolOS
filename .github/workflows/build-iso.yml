@@ -17,7 +17,6 @@ jobs:
         run: |
           LIVE=$(dirname $(find . -path ./.git -prune -o -type d -name auto -print | head -1))
           echo "live dir: $LIVE"
-          chmod -R +x $LIVE/auto $LIVE/config/hooks $LIVE/config/includes.chroot_after_packages/usr/local
           sudo docker run --rm --privileged -v "$PWD:/w" -w "/w/$LIVE" debian:trixie bash -c '
             set -e
             apt-get update && apt-get install -y live-build debootstrap squashfs-tools xorriso ca-certificates

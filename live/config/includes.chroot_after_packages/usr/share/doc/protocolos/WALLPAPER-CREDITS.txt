@@ -1,0 +1,23 @@
+ProtocolOS wallpaper credits
+============================
+ProtocolOS / ProtocolOS-day: original ProtocolOS artwork.
+
+ProtocolOS-mountains — "Mountain range at dusk with soft pastel sky", Renaud Confavreux. Unsplash License.
+  https://unsplash.com/photos/mountain-range-at-dusk-with-soft-pastel-sky-1cU3fPmVbXQ
+ProtocolOS-peak — "A view of a mountain range at sunset" (Pikes Peak), TopSphere Media. Unsplash License.
+  https://unsplash.com/photos/a-view-of-a-mountain-range-at-sunset-xKiaAioyHcA
+ProtocolOS-coast — "Rocky cliff coastline meets the blue ocean" (Big Sur), Vincent Y. Unsplash License.
+  https://unsplash.com/photos/rocky-cliff-coastline-meets-the-blue-ocean-PoTPBPEIdEY
+ProtocolOS-hills — "Rolling green hills under a cloudy sky" (Tuscany), Massimiliano Morosinotto. Unsplash License.
+  https://unsplash.com/photos/rolling-green-hills-under-a-cloudy-sky-cZsMqzp-sfE
+ProtocolOS-dunes (day) — "Dunas de Ica, Perú, 2015-07-29, DD 07-11 PAN", Diego Delso, delso.photo.
+  License: CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/
+  https://commons.wikimedia.org/wiki/File:Dunas_de_Ica,_Per%C3%BA,_2015-07-29,_DD_07-11_PAN.JPG
+  Changes: cropped to 16:9, scaled to 3840x2160.
+ProtocolOS-dunes (night) — "Nightscape at Myall Lakes National Park", Poidabro.
+  License: CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/
+  https://commons.wikimedia.org/wiki/File:Nightscape_at_myall_lakes_national_park.jpg
+  Changes: cropped to 16:9, scaled to 3840x2160.
+
+Night variants of mountains/peak/coast/hills are derived from the photos above by
+image processing (darkening, blue-violet tint, desaturation, vignette).

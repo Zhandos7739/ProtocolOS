@@ -1,0 +1,14 @@
+{
+ "KPlugin": {
+  "Id": "ProtocolOS-hills",
+  "Name": "ProtocolOS Hills",
+  "Authors": [
+   {
+    "Name": "Massimiliano Morosinotto"
+   }
+  ],
+  "License": "Unsplash License",
+  "Website": "https://unsplash.com/photos/rolling-green-hills-under-a-cloudy-sky-cZsMqzp-sfE",
+  "Description": "Source: https://unsplash.com/photos/rolling-green-hills-under-a-cloudy-sky-cZsMqzp-sfE. Night variant: derived by image processing (darkened, tinted), same license as source"
+ }
+}

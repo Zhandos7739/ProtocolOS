@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS wallsync
+Exec=/usr/local/bin/protocolos-wallsync
+OnlyShowIn=KDE;
+NoDisplay=true
+X-KDE-autostart-phase=2

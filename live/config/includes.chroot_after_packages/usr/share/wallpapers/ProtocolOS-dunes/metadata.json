@@ -1,0 +1,14 @@
+{
+ "KPlugin": {
+  "Id": "ProtocolOS-dunes",
+  "Name": "ProtocolOS Dunes",
+  "Authors": [
+   {
+    "Name": "Diego Delso (day); Poidabro (night)"
+   }
+  ],
+  "License": "CC-BY-SA-4.0",
+  "Website": "https://commons.wikimedia.org/wiki/File:Dunas_de_Ica,_Per%C3%BA,_2015-07-29,_DD_07-11_PAN.JPG",
+  "Description": "Source: https://commons.wikimedia.org/wiki/File:Dunas_de_Ica,_Per%C3%BA,_2015-07-29,_DD_07-11_PAN.JPG ; https://commons.wikimedia.org/wiki/File:Nightscape_at_myall_lakes_national_park.jpg. Night variant: photo by Poidabro, CC BY-SA 4.0"
+ }
+}

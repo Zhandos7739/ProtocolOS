@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Blackout
+Exec=konsole --hold -e /usr/local/bin/protocolos-blackout toggle
+Icon=protocolos-blackout
+NoDisplay=true
+Terminal=false

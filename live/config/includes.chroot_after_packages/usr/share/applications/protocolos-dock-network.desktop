@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Сетевой монитор
+Exec=opensnitch-ui
+Icon=protocolos-network
+NoDisplay=true
+Terminal=false

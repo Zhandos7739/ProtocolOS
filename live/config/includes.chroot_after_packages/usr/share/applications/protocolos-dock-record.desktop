@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Запись экрана
+Exec=kooha
+Icon=protocolos-record
+NoDisplay=true
+Terminal=false

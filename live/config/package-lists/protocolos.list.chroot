@@ -64,3 +64,12 @@ earlyoom
 preload
 linux-cpupower
 user-setup
+libnotify-bin
+qdbus-qt6
+# --- installed system boot (UEFI + Secure Boot + dual boot) ---
+grub-efi-amd64-bin
+grub-efi-amd64-signed
+shim-signed
+efibootmgr
+os-prober
+dosfstools

@@ -1,0 +1,14 @@
+{
+ "KPlugin": {
+  "Id": "ProtocolOS-peak",
+  "Name": "ProtocolOS Peak",
+  "Authors": [
+   {
+    "Name": "TopSphere Media"
+   }
+  ],
+  "License": "Unsplash License",
+  "Website": "https://unsplash.com/photos/a-view-of-a-mountain-range-at-sunset-xKiaAioyHcA",
+  "Description": "Source: https://unsplash.com/photos/a-view-of-a-mountain-range-at-sunset-xKiaAioyHcA. Night variant: derived by image processing (darkened, tinted), same license as source"
+ }
+}

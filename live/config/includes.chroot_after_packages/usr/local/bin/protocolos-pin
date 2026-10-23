@@ -1,0 +1,10 @@
+#!/bin/sh
+# protocolos-pin <tile-id>: add the tile's launcher to the dock (icontasks) if it isn't there yet
+id="$1"; [ "$id" = antivirus ] && id=av
+case "$id" in *[!a-z]*|"") exit 1;; esac
+f="protocolos-dock-$id.desktop"
+[ -f "/usr/share/applications/$f" ] || exit 1
+js="panels().forEach(function(p){p.widgets('org.kde.plasma.icontasks').forEach(function(w){w.currentConfigGroup=['General'];var l=String(w.readConfig('launchers',''));var a=l?l.split(','):[];var u='applications:$f';if(a.indexOf(u)<0){a.push(u);w.writeConfig('launchers',a.join(','));w.reloadConfig();}})})"
+if command -v qdbus6 >/dev/null; then qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js"
+else dbus-send --session --type=method_call --dest=org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript string:"$js"; fi
+notify-send -a ProtocolOS -i protocolos "Закреплено в доке" 2>/dev/null || true

@@ -1,0 +1,21 @@
+#!/bin/bash
+# ProtocolOS: экран блокировки берёт ночную версию текущих обоев рабочего стола.
+RC="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+DEF=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg
+KW=$(command -v kwriteconfig6 || command -v kwriteconfig5)
+last=""
+current(){ awk '/^\[Containments\]\[[0-9]+\]\[Wallpaper\]\[org\.kde\.image\]\[General\]/{f=1;next} /^\[/{f=0} f&&/^Image=/{sub(/^Image=/,"");print;exit}' "$RC" 2>/dev/null; }
+night_for(){
+  local p="${1#file://}"
+  case "$p" in /usr/share/wallpapers/ProtocolOS-*) ;; *) echo "$DEF"; return;; esac
+  local pkg; pkg=$(echo "$p" | sed -E 's#^(/usr/share/wallpapers/ProtocolOS-[A-Za-z]+).*#\1#')
+  [ -f "$pkg/contents/night/night.jpg" ] && echo "$pkg/contents/night/night.jpg" || echo "$DEF"
+}
+while :; do
+  n=$(night_for "$(current)")
+  if [ "$n" != "$last" ] && [ -n "$KW" ]; then
+    "$KW" --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "$n"
+    last="$n"
+  fi
+  sleep 5
+done

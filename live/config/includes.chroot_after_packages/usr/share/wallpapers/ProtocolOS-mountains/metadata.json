@@ -1,0 +1,14 @@
+{
+ "KPlugin": {
+  "Id": "ProtocolOS-mountains",
+  "Name": "ProtocolOS Mountains",
+  "Authors": [
+   {
+    "Name": "Renaud Confavreux"
+   }
+  ],
+  "License": "Unsplash License",
+  "Website": "https://unsplash.com/photos/mountain-range-at-dusk-with-soft-pastel-sky-1cU3fPmVbXQ",
+  "Description": "Source: https://unsplash.com/photos/mountain-range-at-dusk-with-soft-pastel-sky-1cU3fPmVbXQ. Night variant: derived by image processing (darkened, tinted), same license as source"
+ }
+}

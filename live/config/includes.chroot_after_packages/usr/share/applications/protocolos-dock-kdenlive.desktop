@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Kdenlive
+Exec=kdenlive
+Icon=protocolos-kdenlive
+NoDisplay=true
+Terminal=false

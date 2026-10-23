@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Discord
+Exec=sh -c "flatpak run com.discordapp.Discord || plasma-discover --search discord"
+Icon=protocolos-discord
+NoDisplay=true
+Terminal=false

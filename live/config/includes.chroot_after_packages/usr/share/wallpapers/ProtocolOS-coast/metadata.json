@@ -1,0 +1,14 @@
+{
+ "KPlugin": {
+  "Id": "ProtocolOS-coast",
+  "Name": "ProtocolOS Coast",
+  "Authors": [
+   {
+    "Name": "Vincent Y"
+   }
+  ],
+  "License": "Unsplash License",
+  "Website": "https://unsplash.com/photos/rocky-cliff-coastline-meets-the-blue-ocean-PoTPBPEIdEY",
+  "Description": "Source: https://unsplash.com/photos/rocky-cliff-coastline-meets-the-blue-ocean-PoTPBPEIdEY. Night variant: derived by image processing (darkened, tinted), same license as source"
+ }
+}

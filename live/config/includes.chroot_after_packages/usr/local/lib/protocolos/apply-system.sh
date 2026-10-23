@@ -47,7 +47,7 @@ if command -v flatpak >/dev/null; then
   [ "${PROTOCOLOS_SKIP_DISCORD:-0}" = 1 ] || flatpak install -y --noninteractive flathub com.discordapp.Discord || log "Discord: будет установлен при первом запуске"
 fi
 # GRUB timeout для установленной системы
-[ -f /etc/default/grub ] && sed -i 's/^GRUB_TIMEOUT=.*/GRUB_TIMEOUT=1/' /etc/default/grub
+# GRUB timeout: set in /etc/default/grub.d/protocolos.cfg (5 s, menu visible for dual boot)
 log done
 # Ярлыки рабочего стола исполняемые (иначе Plasma 6 рисует "!")
 chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null
