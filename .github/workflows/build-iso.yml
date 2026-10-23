@@ -1,0 +1,40 @@
+name: Build ProtocolOS ISO
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL; df -h /
+      - name: Build in Debian trixie
+        run: |
+          LIVE=$(dirname $(find . -path ./.git -prune -o -type d -name auto -print | head -1))
+          echo "live dir: $LIVE"
+          sudo docker run --rm --privileged -v "$PWD:/w" -w "/w/$LIVE" debian:trixie bash -c '
+            set -e
+            apt-get update && apt-get install -y live-build debootstrap squashfs-tools xorriso ca-certificates
+            lb clean --purge || true
+            lb config
+            lb build 2>&1 | tee /w/build.log
+            ls -la *.iso'
+          sudo mv $LIVE/*.iso ./ProtocolOS.iso
+          sudo chown $USER ProtocolOS.iso
+          split -b 1900m ProtocolOS.iso ProtocolOS.iso.part- || true
+          ls -la
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: ProtocolOS build ${{ github.run_number }}
+          files: ProtocolOS.iso.part-*
