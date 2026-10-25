@@ -1,7 +1,6 @@
-// ProtocolOS layout: glass top bar, floating centered dock, glass app tiles (left),
-// folder column (right), protection card (bottom-left).
-// Dark theme: desktop = night/black wallpaper; lock screen (wallsync) = day counterpart.
-// Multi-monitor: wallpaper on every screen; tiles + panels only on the primary.
+// ProtocolOS layout locked to HTML mockup (1920×1080 reference).
+// Dark theme: desktop = night wallpaper; lock screen swapped via wallsync.
+// Multi-monitor: wallpaper on every screen; tiles + panels only on primary.
 var WALL = "file:///usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg";
 var EMPTY = "file:///usr/share/protocolos/emptydesk";
 
@@ -11,16 +10,11 @@ function setupDesktop(d, withTiles) {
     d.writeConfig("Image", WALL);
     d.writeConfig("FillMode", "2");
     d.currentConfigGroup = ["General"];
-    // show no raw file icons: point the desktop folder view at an empty directory
     d.writeConfig("url", EMPTY);
     d.writeConfig("showToolbox", "false");
     if (!withTiles) return;
     var sg = screenGeometry(d.screen);
-    var W = sg.width, H = sg.height;
-    // One full-screen widget draws tiles, folders and the protection card. It lays itself out
-    // from the desktop window size (see org.protocolos.tiles), so nothing overlaps at any resolution
-    // and a later resolution change (VirtualBox guest resize, monitor change) is followed live.
-    var desk = d.addWidget("org.protocolos.tiles", 0, 0, W, H);
+    var desk = d.addWidget("org.protocolos.tiles", 0, 0, sg.width, sg.height);
     desk.currentConfigGroup = ["General"];
     desk.writeConfig("mode", "desktop");
 }
@@ -39,27 +33,27 @@ for (i = 0; i < desks.length; i++) {
 
 var sg = primary ? screenGeometry(primary.screen) : screenGeometry(0);
 var W = sg.width, H = sg.height;
-var S = Math.max(0.6, Math.min(1.5, H / 1080, W / 1280));
+// Mockup bar: height 44, radius 22, inset 16/12 — keep floating Plasma panel close to that.
+var S = Math.max(0.6, Math.min(1.0, H / 1080, W / 1920));
 var primaryScreen = primary ? primary.screen : 0;
 
-// ---- top bar (primary only) ----
 var top = new Panel;
 top.location = "top";
 top.screen = primaryScreen;
-top.height = Math.round(Math.max(30, Math.min(48, 44 * S)));
+top.height = Math.round(Math.max(36, Math.min(48, 44 * S)));
 top.floating = true;
+top.offset = 0;
 var k = top.addWidget("org.kde.plasma.kickoff");
 k.currentConfigGroup = ["General"];
-k.writeConfig("icon", "protocolos");
+k.writeConfig("icon", "protocolos-mark");
 k.writeConfig("menuLabel", "ProtocolOS");
-k.globalShortcut = "Alt+F1";   // Meta opens the launcher
+k.globalShortcut = "Alt+F1";
 top.addWidget("org.kde.plasma.appmenu");
 top.addWidget("org.kde.plasma.panelspacer");
-top.addWidget("org.protocolos.shield");   // pills: CPU temp + protection status
+top.addWidget("org.protocolos.shield");
 var tray = top.addWidget("org.kde.plasma.systemtray");
 tray.currentConfigGroup = ["General"];
 tray.writeConfig("iconSpacing", 2);
-// no separate keyboardlayout widget: the system tray already shows the layout (was shown twice)
 var c = top.addWidget("org.kde.plasma.digitalclock");
 c.currentConfigGroup = ["Appearance"];
 c.writeConfig("showDate", "true");
@@ -67,11 +61,11 @@ c.writeConfig("dateDisplayFormat", "BesideTime");
 c.writeConfig("dateFormat", "custom");
 c.writeConfig("customDateFormat", "ddd, d MMM");
 
-// ---- floating dock (primary only; lists windows from every monitor) ----
+// Mockup dock: height 84, radius 30, bottom 18, centered icons with separator + shield
 var dock = new Panel;
 dock.location = "bottom";
 dock.screen = primaryScreen;
-dock.height = Math.round(Math.max(52, Math.min(90, 84 * S)));
+dock.height = Math.round(Math.max(64, Math.min(96, 84 * S)));
 dock.floating = true;
 dock.lengthMode = "fit";
 dock.alignment = "center";
@@ -86,4 +80,4 @@ tm.writeConfig("showOnlyCurrentActivity", "false");
 tm.writeConfig("iconSpacing", "3");
 tm.writeConfig("maxStripes", "1");
 dock.addWidget("org.kde.plasma.marginsseparator");
-dock.addWidget("org.protocolos.shield");   // green shield icon after the separator
+dock.addWidget("org.protocolos.shield");

@@ -4,9 +4,10 @@
   <group name="General">
     <entry name="mode" type="String"><default>desktop</default></entry>
     <!-- customization (edit mode): ids in display order, hidden ids, card visibility -->
-    <entry name="appOrder" type="StringList"><default></default></entry>
-    <entry name="dirOrder" type="StringList"><default></default></entry>
-    <entry name="hiddenItems" type="StringList"><default></default></entry>
+    <!-- Order and visible set match HTML mockup (7 tiles); extras recoverable in edit mode -->
+    <entry name="appOrder" type="StringList"><default>firefox,terminal,files,settings,discord,store,antivirus,record,kdenlive,blackout,network</default></entry>
+    <entry name="dirOrder" type="StringList"><default>projects,docs,down,pics,system,trash</default></entry>
+    <entry name="hiddenItems" type="StringList"><default>app:record,app:kdenlive,app:blackout,app:network</default></entry>
     <entry name="animIcons" type="Bool"><default>true</default></entry>
     <entry name="showCard" type="Bool"><default>true</default></entry>
   </group>

@@ -17,14 +17,15 @@ PlasmoidItem {
 
     // glass blurs the wallpaper the desktop really uses (dark theme default = night)
     property url wall: "file:///usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg"
+    // HTML mockup order (Sandbox Mod → Discord). Extra apps hidden by default.
     readonly property var apps: [
         ["firefox", "Firefox", "Браузер", "firefox-esr"],
         ["terminal", "Терминал", "Система", "konsole"],
         ["files", "Файлы", "Менеджер", "dolphin"],
         ["settings", "Настройки", "Система", "systemsettings"],
+        ["discord", "Discord", "Мессенджер", "flatpak run com.discordapp.Discord || plasma-discover --search discord"],
         ["store", "Магазин", "Приложения", "plasma-discover"],
         ["antivirus", "Защита", "ClamAV · Антивирус", "clamtk"],
-        ["discord", "Discord", "Мессенджер", "flatpak run com.discordapp.Discord || plasma-discover --search discord"],
         ["record", "Запись экрана", "Kooha", "kooha"],
         ["kdenlive", "Kdenlive", "Видеоредактор", "kdenlive"],
         ["blackout", "Blackout", "Отключить сеть", "konsole --hold -e /usr/local/bin/protocolos-blackout toggle"],
@@ -109,7 +110,12 @@ PlasmoidItem {
         id: ex; engine: "executable"
         onNewData: (src, data) => disconnectSource(src)
     }
-    function resetLayout() { cfg.appOrder = []; cfg.dirOrder = []; cfg.hiddenItems = []; cfg.showCard = true }
+    function resetLayout() {
+        cfg.appOrder = ["firefox","terminal","files","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
+        cfg.dirOrder = ["projects","docs","down","pics","system","trash"]
+        cfg.hiddenItems = ["app:record","app:kdenlive","app:blackout","app:network"]
+        cfg.showCard = true
+    }
     function pinToDock(id) { launch("/usr/local/bin/protocolos-pin " + id) }
     function openTerminalIn(path) { launch("d=\"" + path + "\"; mkdir -p \"$d\"; konsole --workdir \"$d\"") }
     // typing on the desktop hands the text to KRunner
@@ -169,35 +175,32 @@ PlasmoidItem {
         Component.onCompleted: Qt.callLater(sync)
         Timer { interval: 5000; running: true; repeat: true; onTriggered: area.sync() }
 
-        // ---------- screen-relative geometry (reference: mockup at 1920x1080) ----------
+        // ---------- geometry locked to HTML mockup at 1920×1080 ----------
+        // tile 150×170, step 180×200 from (80,110); label y=520; card 820×270 at (80,580);
+        // folders: Проекты (1590,100), others x=1740 step 150; dock clearance ~104.
         readonly property real sw: area.Window.width > 0 ? area.Window.width : Screen.width
         readonly property real sh: area.Window.height > 0 ? area.Window.height : Screen.height
-        // Cap scale on ultrawide so tiles do not balloon and waste GPU fill-rate.
-        readonly property real scaleCap: 1.25
-        // mockup sizes are CSS px at 1280x800 and 1920x1080 alike: tile 150x170, gap 30, 4 columns,
-        // card 820x270. Scale 1 there, smaller on small screens; everything shrinks together if the
-        // tiles + label + card would not fit above the dock.
         readonly property int cols: 4
         readonly property int rows: Math.max(1, Math.ceil(root.appList.length / cols))
-        readonly property real base: Math.max(0.4, Math.min(area.scaleCap, Math.max(1, sh / 1080), sw / 1280, sh / 800))
-        readonly property real need: 80 + rows * 200 - 30 + 54 + 270 + 104
-        readonly property real fitH: sh / need
-        readonly property real fitW: sw / 1130
-        readonly property real s: Math.min(base, fitH, fitW, area.scaleCap)
-        readonly property real topY: Math.round(80 * s)
-        readonly property real bottomY: sh - Math.round(104 * s)
+        readonly property real refNeed: 110 + rows * 200 + 40 + 270 + 120
+        readonly property real s: Math.max(0.45, Math.min(1.0, sw / 1920, sh / 1080, sh / refNeed))
         readonly property real leftX: Math.round(80 * s)
-        readonly property real foldW: Math.round(130 * s)
-        readonly property real foldX: sw - Math.round(50 * s) - foldW
-        readonly property real foldStep: Math.min(150 * s, (bottomY - topY + 10 * s) / 6)
+        readonly property real topY: Math.round(110 * s)
         readonly property real cell: Math.round(150 * s)
-        readonly property real gap: Math.round(30 * s)
+        readonly property real gap: Math.round(30 * s)          // 180-150
+        readonly property real rowGap: Math.round(30 * s)       // 200-170
         readonly property var grid: ({ c: cols, cell: cell })
-        readonly property real tilesEnd: topY + rows * (Math.round(170 * s) + gap) - gap
-        readonly property real labelH: Math.round(40 * s)
+        readonly property real tilesEnd: topY + rows * (Math.round(170 * s) + rowGap) - rowGap
+        readonly property real labelY: Math.round(520 * s)
+        readonly property real labelH: Math.round(28 * s)
         readonly property real cardW: Math.round(820 * s)
         readonly property real cardH: Math.round(270 * s)
-        readonly property real cardY: tilesEnd + labelH + Math.round(14 * s)
+        readonly property real cardY: Math.max(labelY + labelH + Math.round(12 * s), Math.round(580 * s))
+        readonly property real foldW: Math.round(130 * s)
+        readonly property real foldX: Math.round(1740 * s)       // main folder column
+        readonly property real foldProjX: Math.round(1590 * s)  // Проекты offset like mockup
+        readonly property real foldTop: Math.round(100 * s)
+        readonly property real foldStep: Math.round(150 * s)
 
         Item {
             id: stage
@@ -224,11 +227,11 @@ PlasmoidItem {
                     readonly property bool dragging: ma.drag.active || dx !== 0 || dy !== 0
                     z: dragging ? 10 : 0
                     x: area.leftX + col * (area.cell + area.gap) + dx
-                    y: area.topY + row * (Math.round(170 * area.s) + area.gap) + dy
+                    y: area.topY + row * (Math.round(170 * area.s) + area.rowGap) + dy
                     Behavior on x { enabled: !tile.dragging; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     Behavior on y { enabled: !tile.dragging; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     Wiggle { target: tile; running: root.editing && !tile.dragging; phase: index }
-                    width: area.cell; height: Math.round(Math.round(170 * area.s))
+                    width: area.cell; height: Math.round(170 * area.s)
                     scale: ma.pressed ? 0.95 : 1
                     Behavior on scale { NumberAnimation { duration: 100 } }
                     readonly property real k: area.cell / 150
@@ -310,7 +313,7 @@ PlasmoidItem {
                             if (tile.dx !== 0 || tile.dy !== 0) {
                                 var cx = tile.x + tile.width / 2 - area.leftX, cy = tile.y + tile.height / 2 - area.topY
                                 var c = Math.max(0, Math.min(area.grid.c - 1, Math.floor(cx / (area.cell + area.gap))))
-                                var r = Math.max(0, Math.floor(cy / (Math.round(170 * area.s) + area.gap)))
+                                var r = Math.max(0, Math.floor(cy / (Math.round(170 * area.s) + area.rowGap)))
                                 var id = modelData[0]
                                 tile.dx = 0; tile.dy = 0
                                 root.moveTo("app", id, r * area.grid.c + c)
@@ -333,7 +336,7 @@ PlasmoidItem {
 
             Text {
                 x: area.leftX + 4 * area.s
-                y: area.cardY - area.labelH
+                y: Math.min(area.labelY, area.cardY - area.labelH - Math.round(8 * area.s))
                 height: area.labelH; verticalAlignment: Text.AlignVCenter
                 text: "УСТАНОВЛЕННЫЕ ПРИЛОЖЕНИЯ"
                 color: Qt.rgba(1, 1, 1, 0.8)
@@ -353,17 +356,19 @@ PlasmoidItem {
                 EditDecor { k: area.s; radius: 28 * area.s; editing: root.editing; onHide: root.setHidden("card", true) }
             }
 
-            // ---------- folders ----------
+            // ---------- folders (Проекты offset left + caption, like HTML) ----------
             Repeater {
                 model: root.dirList
                 delegate: Item {
                     id: fold
                     property real dy: 0
                     property real dx: 0
+                    readonly property bool isProj: modelData[0] === "projects"
+                    readonly property int colIndex: isProj ? 0 : Math.max(0, index - (root.dirList[0] && root.dirList[0][0] === "projects" ? 1 : 0))
                     readonly property bool dragging: dx !== 0 || dy !== 0
                     z: dragging ? 10 : 0
-                    x: area.foldX + dx
-                    y: area.topY - 10 * area.s + index * area.foldStep + dy
+                    x: (isProj ? area.foldProjX : area.foldX) + dx
+                    y: area.foldTop + (isProj ? 0 : colIndex * area.foldStep) + dy
                     Behavior on y { enabled: !fold.dragging; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
                     readonly property bool kfocus: root.kbd === root.appList.length + index && area.activeFocus
                     Rectangle { anchors.fill: parent; anchors.margins: -6 * area.s; radius: 18 * area.s; color: fm.containsMouse || fold.kfocus ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
@@ -373,18 +378,17 @@ PlasmoidItem {
                     QQC2.ToolTip.text: modelData[1]
                     Wiggle { target: fold; running: root.editing && !fold.dragging; phase: index + 3 }
                     width: area.foldW
-                    height: fi.height + fl.height + 8 * area.s
+                    height: fi.height + fl.height + (isProj ? Math.round(22 * area.s) : 0) + 8 * area.s
                     scale: fm.pressed ? 0.95 : 1
                     Behavior on scale { NumberAnimation { duration: 120 } }
                     Kirigami.Icon {
                         id: fi
                         anchors.horizontalCenter: parent.horizontalCenter
                         source: "protocolos-fold-" + modelData[0]
-                        // svg is 104x96 (tab included); mockup body is 96x78 inside a 130px column
+                        // svg 104×96; mockup body 96×78 in a 130px column
                         width: Math.round(Math.min(104 * area.s, (area.foldStep - 30 * area.s) * 104 / 96))
                         height: Math.round(width * 96 / 104)
                         opacity: fm.containsMouse ? 1 : 0.95
-                        // gentle lift on hover
                         readonly property bool lift: (fm.containsMouse || fold.kfocus) && !root.editing && root.cfg.animIcons && Kirigami.Units.longDuration > 0
                         transform: Translate { y: fi.lift ? -5 * area.s : 0
                             Behavior on y { NumberAnimation { duration: Kirigami.Units.longDuration; easing.type: Easing.OutBack } } }
@@ -401,6 +405,17 @@ PlasmoidItem {
                         text: modelData[1]; color: "white"
                         font.family: "Inter"; font.pixelSize: Math.max(10, 16 * area.s); font.weight: Font.DemiBold
                         style: Text.Raised; styleColor: Qt.rgba(0, 0, 0, 0.45)
+                    }
+                    Text {
+                        visible: fold.isProj
+                        anchors.top: fl.bottom; anchors.topMargin: 2 * area.s
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: parent.width + 20 * area.s; horizontalAlignment: Text.AlignHCenter
+                        wrapMode: Text.WordWrap
+                        text: "ярлык → ~/Документы/Проекты"
+                        color: Qt.rgba(1, 1, 1, 0.85)
+                        font.family: "Inter"; font.pixelSize: Math.max(8, 12 * area.s); font.weight: Font.Medium
+                        style: Text.Raised; styleColor: Qt.rgba(0, 0, 0, 0.4)
                     }
                     EditDecor { k: area.s; radius: 16 * area.s; editing: root.editing; onHide: root.setHidden("dir:" + modelData[0], true) }
                     MouseArea {

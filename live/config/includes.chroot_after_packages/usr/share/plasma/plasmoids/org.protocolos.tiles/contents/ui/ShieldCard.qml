@@ -72,7 +72,9 @@ Item {
                     text: card.blackout ? "Blackout включён" : (card.ok ? "Защита активна" : "Требуется внимание") }
                 Text { Layout.fillWidth: true; elide: Text.ElideRight
                     color: Qt.rgba(1, 1, 1, 0.85); font.family: "Inter"; font.pixelSize: 16 * card.u
-                    text: "ClamAV: базы " + (card.st.db || "—") }
+                    text: card.st.db && card.st.db !== "нет"
+                          ? ("ClamAV: базы обновлены · freshclam " + String(card.st.db).slice(-5))
+                          : "ClamAV: базы обновляются…" }
             }
             Rectangle {
                 visible: card.width > 560
