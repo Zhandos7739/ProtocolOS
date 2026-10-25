@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Камера (разрешить/запретить)
+Name[ru]=Камера (разрешить/запретить)
+Comment=По умолчанию камера полностью запрещена
+Exec=/usr/local/bin/protocolos-camera toggle
+Icon=protocolos-cam
+Categories=Settings;Security;
+Actions=Allow;Deny;
+StartupNotify=false
+
+[Desktop Action Allow]
+Name=Разрешить камеру
+Exec=/usr/local/bin/protocolos-camera allow
+
+[Desktop Action Deny]
+Name=Запретить камеру
+Exec=/usr/local/bin/protocolos-camera deny

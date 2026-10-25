@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Тема ProtocolOS
+Name[ru]=Тема ProtocolOS
+Comment=Переключить тёмную и светлую тему (обои стола и блокировки меняются местами)
+Comment[ru]=Переключить тёмную и светлую тему (обои стола и блокировки меняются местами)
+Exec=/usr/local/bin/protocolos-theme toggle
+Icon=protocolos
+Categories=Settings;DesktopSettings;
+Keywords=theme;dark;wallpaper;protocolos;
+StartupNotify=false

@@ -1,0 +1,89 @@
+#!/bin/bash
+# Настройки спящего режима + показ кнопки VPN
+set -u
+K=$(command -v kdialog || true)
+P=/usr/local/bin/protocolos-power
+[ -x "$P" ] || exit 1
+[ -n "$K" ] || { echo "нужен kdialog"; exit 1; }
+
+while true; do
+  eval "$($P status | sed 's/^/export /')"
+  vpn_txt="скрыта (выкл)"
+  [ "${show_vpn_button:-0}" = 1 ] && vpn_txt="показана"
+
+  choice=$($K --title "Питание и сон — ProtocolOS" --menu \
+    "Сейчас: предспящий ${presleep_lock} мин (яркость ${presleep_brightness}%) → монитор ${monitor_off} мин → полный сон ${full_sleep} мин (${full_action}). VPN-кнопка: ${vpn_txt}" \
+    explain "Что делают таймеры (описание)" \
+    presleep "Предспящий: минуты до блокировки [${presleep_lock}]" \
+    bright "Яркость при предспящем, % [${presleep_brightness}]" \
+    monitor "Выключение монитора, минуты [${monitor_off}]" \
+    full "Полный сон / выключение, минуты [${full_sleep}]" \
+    action "Действие полного сна [${full_action}]" \
+    vpn "Кнопка VPN в панели [${vpn_txt}]" \
+    apply "Применить сейчас" \
+    close "Закрыть" 2>/dev/null) || exit 0
+
+  case "$choice" in
+    explain)
+      $K --title "Спящий режим" --msgbox "$(
+        cat <<EOF
+По стандарту ProtocolOS:
+
+1) Предспящий (${presleep_lock} мин)
+   • Экран блокируется (как Win+L)
+   • Яркость снижается до ${presleep_brightness}%
+
+2) Монитор (${monitor_off} мин простоя)
+   • Через $((monitor_off - presleep_lock)) мин после предспящего
+   • Монитор полностью гаснет (DPMS off)
+
+3) Полный сон (${full_sleep} мин = $((full_sleep/60)) ч)
+   • Действие: ${full_action}
+   • suspend — сон, hibernate — гибернация, shutdown — выключение
+
+Кнопка VPN по умолчанию выключена и не показывается в панели.
+Включить можно здесь: «Кнопка VPN в панели».
+EOF
+      )"
+      ;;
+    presleep)
+      v=$($K --title "Предспящий" --inputbox "Минуты до блокировки и снижения яркости:" "$presleep_lock" 2>/dev/null) || continue
+      "$P" set presleep_lock "$v"
+      ;;
+    bright)
+      v=$($K --title "Яркость" --inputbox "Яркость при предспящем (1–100 %):" "$presleep_brightness" 2>/dev/null) || continue
+      "$P" set presleep_brightness "$v"
+      ;;
+    monitor)
+      v=$($K --title "Монитор" --inputbox "Минуты до выключения монитора (обычно предспящий+5):" "$monitor_off" 2>/dev/null) || continue
+      "$P" set monitor_off "$v"
+      ;;
+    full)
+      v=$($K --title "Полный сон" --inputbox "Минуты до полного сна (180 = 3 часа):" "$full_sleep" 2>/dev/null) || continue
+      "$P" set full_sleep "$v"
+      ;;
+    action)
+      v=$($K --title "Действие" --radiolist "Что делать через ${full_sleep} мин:" \
+        suspend "Сон (suspend)" "$([ "$full_action" = suspend ] && echo on || echo off)" \
+        hibernate "Гибернация" "$([ "$full_action" = hibernate ] && echo on || echo off)" \
+        shutdown "Выключение ПК" "$([ "$full_action" = shutdown ] && echo on || echo off)" 2>/dev/null) || continue
+      "$P" set full_action "$v"
+      ;;
+    vpn)
+      if [ "${show_vpn_button:-0}" = 1 ]; then
+        if $K --yesno "Скрыть кнопку VPN с панели?"; then
+          "$P" vpn-hide
+        fi
+      else
+        if $K --yesno "Показать кнопку VPN в панели?\n\nПо умолчанию она выключена и скрыта."; then
+          "$P" vpn-show
+        fi
+      fi
+      ;;
+    apply)
+      "$P" apply
+      $K --msgbox "Настройки питания применены."
+      ;;
+    close|"" ) exit 0 ;;
+  esac
+done

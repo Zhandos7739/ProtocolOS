@@ -1,0 +1,136 @@
+#!/bin/bash
+# ProtocolOS: создать/удалить папки и файлы; буфер Ctrl+C/X/V на рабочем столе.
+set -u
+CLIP="$HOME/.cache/protocolos/file-clipboard"
+mkdir -p "$(dirname "$CLIP")" "$HOME/.config/protocolos" 2>/dev/null || true
+
+desk() { xdg-user-dir DESKTOP 2>/dev/null || echo "$HOME/Desktop"; }
+docs() { xdg-user-dir DOCUMENTS 2>/dev/null || echo "$HOME/Documents"; }
+notify() {
+  command -v notify-send >/dev/null || return 0
+  notify-send -a ProtocolOS -i system-file-manager "$@"
+}
+resolve_dir() {
+  local d="${1:-}"
+  case "$d" in
+    ""|desktop|Desktop) desk ;;
+    docs|documents|Документы) docs ;;
+    projects|Проекты) echo "$(docs)/Проекты" ;;
+    down|downloads|Загрузки) xdg-user-dir DOWNLOAD 2>/dev/null || echo "$HOME/Downloads" ;;
+    pics|pictures|Изображения) xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures" ;;
+    /*) echo "$d" ;;
+    *) echo "$d" ;;
+  esac
+}
+ask_name() {
+  local title="$1" def="$2"
+  if command -v kdialog >/dev/null; then
+    kdialog --title "ProtocolOS" --inputbox "$title" "$def" 2>/dev/null || true
+  elif command -v zenity >/dev/null; then
+    zenity --entry --title="ProtocolOS" --text="$title" --entry-text="$def" 2>/dev/null || true
+  else
+    echo "$def"
+  fi
+}
+safe_name() {
+  # запрет пути/скрытых управляющих
+  echo "$1" | tr -d '/\0' | sed 's/^[.]*//' | head -c 180
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  new-folder|mkdir)
+    dir=$(resolve_dir "${2:-desktop}")
+    mkdir -p "$dir"
+    name=$(safe_name "$(ask_name "Имя новой папки:" "Новая папка")")
+    [ -z "$name" ] && exit 1
+    target="$dir/$name"
+    n=1
+    while [ -e "$target" ]; do target="$dir/${name} ($n)"; n=$((n+1)); done
+    mkdir -p "$target" && notify "Папка создана" "$target" && xdg-open "$dir" >/dev/null 2>&1 &
+    ;;
+  new-file|touch)
+    dir=$(resolve_dir "${2:-desktop}")
+    mkdir -p "$dir"
+    name=$(safe_name "$(ask_name "Имя нового файла:" "Новый файл.txt")")
+    [ -z "$name" ] && exit 1
+    target="$dir/$name"
+    n=1
+    while [ -e "$target" ]; do
+      base="${name%.*}"; ext=""; [[ "$name" == *.* ]] && ext=".${name##*.}" && base="${name%.*}"
+      target="$dir/${base} ($n)${ext}"
+      n=$((n+1))
+    done
+    : > "$target" && notify "Файл создан" "$target" && xdg-open "$dir" >/dev/null 2>&1 &
+    ;;
+  delete|trash|rm)
+    path="${2:-}"
+    [ -z "$path" ] && exit 2
+    # только реальные пути — не алиасы desktop/docs
+    case "$path" in
+      /*) ;;
+      *) notify "Удаление" "Откройте «Файлы» и удалите объект там (Del)"; exit 1 ;;
+    esac
+    [ -e "$path" ] || { notify "Удаление" "Не найдено: $path"; exit 1; }
+    case "$path" in "$HOME"|"$HOME/"|"/"|"$(desk)"|"$(docs)") notify "Удаление" "Эту папку удалять нельзя"; exit 1 ;; esac
+    if command -v kdialog >/dev/null; then
+      kdialog --yesno "Удалить в корзину?\n$path" || exit 1
+    fi
+    if command -v kioclient6 >/dev/null; then
+      kioclient6 move "$path" trash:/ >/dev/null 2>&1
+    elif command -v kioclient >/dev/null; then
+      kioclient move "$path" trash:/ >/dev/null 2>&1
+    else
+      rm -rf -- "$path"
+    fi
+    notify "Удалено" "$path"
+    ;;
+  copy|copy-target)
+    path="${2:-}"
+    if [ "$cmd" = copy-target ]; then
+      path=$(resolve_dir "$path")
+    fi
+    [ -e "$path" ] || exit 2
+    # не копируем весь домашний каталог целиком по ошибке
+    case "$path" in "$HOME"|"$HOME/") notify "Копирование" "Выберите папку или файл в «Файлы»"; exit 1 ;; esac
+    printf 'copy\n%s\n' "$path" > "$CLIP"
+    notify "Скопировано" "$path"
+    ;;
+  cut|cut-target)
+    path="${2:-}"
+    if [ "$cmd" = cut-target ]; then
+      path=$(resolve_dir "$path")
+    fi
+    [ -e "$path" ] || exit 2
+    case "$path" in "$HOME"|"$HOME/"|"/") notify "Вырезание" "Системные папки нельзя вырезать"; exit 1 ;; esac
+    printf 'cut\n%s\n' "$path" > "$CLIP"
+    notify "Вырезано" "$path"
+    ;;
+  paste)
+    dir=$(resolve_dir "${2:-desktop}")
+    mkdir -p "$dir"
+    [ -f "$CLIP" ] || { notify "Буфер пуст" "Сначала Ctrl+C или Ctrl+X"; exit 1; }
+    mode=$(sed -n '1p' "$CLIP")
+    src=$(sed -n '2p' "$CLIP")
+    [ -e "$src" ] || { notify "Буфер" "Источник исчез"; exit 1; }
+    base=$(basename "$src")
+    dest="$dir/$base"
+    n=1
+    while [ -e "$dest" ]; do dest="$dir/${base%.*} ($n).${base##*.}"; [[ "$base" != *.* ]] && dest="$dir/${base} ($n)"; n=$((n+1)); done
+    if [ "$mode" = cut ]; then
+      mv -- "$src" "$dest" && rm -f "$CLIP"
+      notify "Перемещено" "$dest"
+    else
+      if [ -d "$src" ]; then cp -a -- "$src" "$dest"; else cp -a -- "$src" "$dest"; fi
+      notify "Вставлено" "$dest"
+    fi
+    xdg-open "$dir" >/dev/null 2>&1 &
+    ;;
+  open-desktop)
+    d=$(desk); mkdir -p "$d"; xdg-open "$d" >/dev/null 2>&1 &
+    ;;
+  *)
+    echo "usage: $0 new-folder|new-file|delete|copy|cut|paste|open-desktop [path]"
+    exit 2
+    ;;
+esac

@@ -1,0 +1,9 @@
+[General]
+KeepClipboardContents=true
+MaxClipItems=50
+IgnoreEmptyClip=true
+IgnoreSelection=true
+Synchronize=false
+Version=6
+TimeoutForActionPopups=0
+ActionsInfoMessageShown=true

@@ -1,0 +1,115 @@
+#!/bin/bash
+# Мастер первого запуска: язык, Wi‑Fi, обои, уровень защиты.
+set -u
+DONE="$HOME/.config/protocolos/welcome.done"
+mkdir -p "$HOME/.config/protocolos"
+[ -f "$DONE" ] && exit 0
+
+K=$(command -v kdialog || true)
+[ -n "$K" ] || { touch "$DONE"; exit 0; }
+
+notify() { command -v notify-send >/dev/null && notify-send -a ProtocolOS -i protocolos-mark "$@" || true; }
+
+$K --title "ProtocolOS" --msgbox "Добро пожаловать в ProtocolOS.\n\nСейчас настроим язык, сеть, обои и защиту." || true
+
+# --- язык ---
+lang=$($K --title "Язык" --radiolist "Выберите язык системы:" \
+  ru_RU.UTF-8 "Русский" on \
+  en_US.UTF-8 "English" off 2>/dev/null || echo "ru_RU.UTF-8")
+case "$lang" in
+  en_US.UTF-8|en_US)
+    mkdir -p "$HOME/.config/plasma-localerc"
+    printf '[Formats]\nLANG=en_US.UTF-8\n' > "$HOME/.config/plasma-localerc"
+    ;;
+  *)
+    printf '[Formats]\nLANG=ru_RU.UTF-8\n' > "$HOME/.config/plasma-localerc"
+    ;;
+esac
+
+# --- Wi‑Fi ---
+if $K --title "Wi‑Fi" --yesno "Открыть настройки сети для подключения к Wi‑Fi?"; then
+  if command -v systemsettings >/dev/null; then
+    systemsettings kcm_networkmanagement >/dev/null 2>&1 &
+  else
+    plasmawindowed org.kde.plasma.networkmanagement >/dev/null 2>&1 &
+  fi
+  $K --title "Wi‑Fi" --msgbox "Подключитесь к сети, затем нажмите OK." || true
+fi
+
+# --- обои ---
+wall=$($K --title "Обои" --radiolist "Фон рабочего стола:" \
+  ProtocolOS "Ночь (по умолчанию)" on \
+  ProtocolOS-day "День" off \
+  ProtocolOS-mountains "Горы" off \
+  ProtocolOS-coast "Побережье" off \
+  ProtocolOS-hills "Холмы" off \
+  ProtocolOS-dunes "Дюны" off \
+  ProtocolOS-peak "Пик" off 2>/dev/null || echo ProtocolOS)
+img="/usr/share/wallpapers/${wall}/contents/images/1920x1080.jpg"
+if [ -f "$img" ]; then
+  case "$wall" in
+    ProtocolOS-day) /usr/local/bin/protocolos-theme light >/dev/null 2>&1 || true ;;
+    ProtocolOS) /usr/local/bin/protocolos-theme dark >/dev/null 2>&1 || true ;;
+    *)
+      # прямая подстановка через plasma appletsrc + wallsync path
+      echo "$img" > "$HOME/.config/protocolos/wallpaper-override"
+      python3 - "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" "file://$img" <<'PY' 2>/dev/null || true
+import sys,re
+path,img=sys.argv[1],sys.argv[2]
+try: text=open(path,encoding="utf-8").read()
+except FileNotFoundError: sys.exit(0)
+out=[]; lines=text.splitlines(True); i=0
+while i < len(lines):
+    line=lines[i]; out.append(line)
+    if re.match(r"^\[Containments\]\[[0-9]+\]\[Wallpaper\]\[org\.kde\.image\]\[General\]", line):
+        i+=1
+        while i < len(lines) and not lines[i].startswith("["):
+            if lines[i].startswith("Image="): out.append("Image="+img+"\n")
+            else: out.append(lines[i])
+            i+=1
+        continue
+    i+=1
+open(path,"w",encoding="utf-8").write("".join(out))
+PY
+      ;;
+  esac
+fi
+
+# --- уровень защиты ---
+prot=$($K --title "Защита" --radiolist "Уровень защиты:" \
+  balanced "Баланс (рекомендуется): USB спрашивает, сеть — OpenSnitch, DoT" on \
+  strict "Строгий: USB блок+спрос, микрофон выкл при входе, DoT" off \
+  open "Открытый: меньше запросов (не для публичных сетей)" off 2>/dev/null || echo balanced)
+echo "$prot" > "$HOME/.config/protocolos/protection-level"
+case "$prot" in
+  strict)
+    /usr/local/bin/protocolos-audio source mute >/dev/null 2>&1 || true
+    mkdir -p "$HOME/.config/autostart"
+    cat > "$HOME/.config/autostart/protocolos-mute-mic.desktop" <<'E'
+[Desktop Entry]
+Type=Application
+Name=Mute mic on login
+Exec=/usr/local/bin/protocolos-audio source mute
+NoDisplay=true
+X-KDE-autostart-phase=1
+E
+    ;;
+  open)
+    # пользовательский override: не спрашивать USB повторно — allow-all через локальный флаг
+    echo open > "$HOME/.config/protocolos/usb-mode"
+    ;;
+  *)
+    echo balanced > "$HOME/.config/protocolos/usb-mode"
+    ;;
+esac
+
+$K --title "ProtocolOS" --msgbox "Готово.\n\n• Сон: 15 мин блок (яркость 70%) → 20 мин монитор → 3 ч сон\n• Настройки: «Спящий режим» (там же кнопка VPN)\n• VPN-кнопка по умолчанию скрыта\n• Meta+V буфер · Meta+N заметки · Meta+←/→ snap" || true
+touch "$DONE"
+notify "Настройка завершена" "Приятной работы в ProtocolOS"
+# фоном подтянуть Steam если сеть есть
+if ping -c1 -W2 1.1.1.1 >/dev/null 2>&1; then
+  flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo >/dev/null 2>&1 || true
+  flatpak info com.valvesoftware.Steam >/dev/null 2>&1 || \
+    flatpak install -y --noninteractive --user flathub com.valvesoftware.Steam >/dev/null 2>&1 &
+fi
+exit 0

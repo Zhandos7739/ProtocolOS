@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Steam
+GenericName=Игры · Proton · GameMode
+Exec=/usr/local/bin/protocolos-steam
+Icon=steam
+Terminal=false

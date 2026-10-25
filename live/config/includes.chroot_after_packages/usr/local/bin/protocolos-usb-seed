@@ -1,0 +1,21 @@
+#!/bin/bash
+# При старте системы: разрешить уже подключённые клавиатуру/мышь/хабы (не спрашивать).
+set -u
+UG=$(command -v usbguard || true)
+[ -n "$UG" ] || exit 0
+RULES=/etc/usbguard/rules.conf
+mkdir -p /etc/usbguard /var/log/usbguard
+# сгенерировать политику для текущих устройств, если rules почти пустые
+if [ ! -s "$RULES" ] || ! grep -q 'allow id' "$RULES" 2>/dev/null; then
+  if "$UG" generate-policy >/tmp/protocolos-usb-policy.$$ 2>/dev/null; then
+    # все present → allow (Inserted всё равно block via ImplicitPolicyTarget)
+    sed 's/^block /allow /; s/^reject /allow /' /tmp/protocolos-usb-policy.$$ > "$RULES"
+    rm -f /tmp/protocolos-usb-policy.$$
+  fi
+fi
+# гарантируем хабы
+grep -q '09:00:00' "$RULES" 2>/dev/null || cat >> "$RULES" <<'R'
+allow with-interface equals { 09:00:00 }
+allow with-interface equals { 09:00:01 }
+R
+systemctl try-reload-or-restart usbguard 2>/dev/null || true

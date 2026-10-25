@@ -3,11 +3,16 @@
   <kcfgfile name=""/>
   <group name="General">
     <entry name="mode" type="String"><default>desktop</default></entry>
-    <!-- customization (edit mode): ids in display order, hidden ids, card visibility -->
-    <entry name="appOrder" type="StringList"><default></default></entry>
-    <entry name="dirOrder" type="StringList"><default></default></entry>
-    <entry name="hiddenItems" type="StringList"><default></default></entry>
+    <entry name="appOrder" type="StringList"><default>firefox,terminal,files,writer,sheets,impress,pdf,calc,steam,settings,discord,store,antivirus,record,kdenlive,blackout,network</default></entry>
+    <entry name="dirOrder" type="StringList"><default>projects,docs,down,pics,system,trash</default></entry>
+    <entry name="hiddenItems" type="StringList"><default>app:record,app:kdenlive,app:blackout,app:network</default></entry>
     <entry name="animIcons" type="Bool"><default>true</default></entry>
     <entry name="showCard" type="Bool"><default>true</default></entry>
+    <!-- Layout (also editable in «Расположение») -->
+    <entry name="columns" type="Int"><default>4</default><min>3</min><max>6</max></entry>
+    <entry name="folderSide" type="String"><default>right</default></entry>
+    <entry name="marginLeft" type="Int"><default>80</default><min>20</min><max>400</max></entry>
+    <entry name="marginTop" type="Int"><default>110</default><min>40</min><max>400</max></entry>
+    <entry name="appleOpen" type="Bool"><default>true</default></entry>
   </group>
 </kcfg>

@@ -8,6 +8,9 @@ import org.kde.kirigami as Kirigami
 Item {
     id: card
     property url wallpaper: ""
+    property Item wallLayer: null
+    property real wallW: 1920
+    property real wallH: 1080
     property bool animate: true
     property var st: ({})
     readonly property bool blackout: st.blackout === "on"
@@ -25,7 +28,7 @@ Item {
     P5Support.DataSource {
         id: ex; engine: "executable"
         connectedSources: [card.statusCmd]
-        interval: 15000
+        interval: 45000
         onNewData: (src, data) => {
             if (src === card.statusCmd) {
                 var o = {}
@@ -40,7 +43,11 @@ Item {
         }
     }
 
-    Glass { anchors.fill: parent; radius: 28 * card.u; wallpaper: card.wallpaper }
+    Glass {
+        anchors.fill: parent; radius: 28 * card.u
+        wallpaper: card.wallpaper; wallLayer: card.wallLayer
+        wallW: card.wallW; wallH: card.wallH
+    }
 
     ColumnLayout {
         anchors.fill: parent; anchors.margins: 24 * card.u; spacing: 20 * card.u
@@ -65,7 +72,9 @@ Item {
                     text: card.blackout ? "Blackout включён" : (card.ok ? "Защита активна" : "Требуется внимание") }
                 Text { Layout.fillWidth: true; elide: Text.ElideRight
                     color: Qt.rgba(1, 1, 1, 0.85); font.family: "Inter"; font.pixelSize: 16 * card.u
-                    text: "ClamAV: базы " + (card.st.db || "—") }
+                    text: card.st.db && card.st.db !== "нет"
+                          ? ("ClamAV: базы обновлены · freshclam " + String(card.st.db).slice(-5))
+                          : "ClamAV: базы обновляются…" }
             }
             Rectangle {
                 visible: card.width > 560

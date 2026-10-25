@@ -1,0 +1,13 @@
+[General]
+ConfirmClosingMultipleTabs=true
+EditableUrlnavigators=true
+RememberOpenedTabs=true
+ShowFullPath=false
+ShowToolTips=true
+VersionControlEnabled=false
+
+[DetailsModeSettings]
+PreviewSize=22
+
+[IconsModeSettings]
+PreviewSize=64

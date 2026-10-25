@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PDF
+Comment=Читалка PDF
+Exec=/usr/local/bin/protocolos-office pdf
+Icon=protocolos-pdf
+StartupWMClass=okular
+NoDisplay=true
+Terminal=false

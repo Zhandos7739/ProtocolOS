@@ -1,0 +1,67 @@
+#!/bin/bash
+# ProtocolOS theme: dark (default) swaps night wallpaper onto the desktop and day onto the lock
+# screen; light does the reverse. Usage: protocolos-theme [dark|light|toggle|status]
+set -u
+MODE_FILE="$HOME/.config/protocolos/theme"
+NIGHT=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg
+DAY=/usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg
+RC="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
+KW=$(command -v kwriteconfig6 || command -v kwriteconfig5)
+
+mkdir -p "$(dirname "$MODE_FILE")"
+cur=$(tr -d '[:space:]' <"$MODE_FILE" 2>/dev/null || echo dark)
+case "$cur" in light|day) cur=light ;; *) cur=dark ;; esac
+
+set_mode() {
+  local m=$1 desk lock
+  case "$m" in
+    light) desk=$DAY; lock=$NIGHT; echo light >"$MODE_FILE" ;;
+    dark)  desk=$NIGHT; lock=$DAY; echo dark >"$MODE_FILE" ;;
+    *) echo "usage: $0 dark|light|toggle|status"; exit 2 ;;
+  esac
+  if [ -f "$RC" ]; then
+    python3 - "$RC" "$desk" <<'PY' 2>/dev/null || true
+import sys,re
+path,img=sys.argv[1],sys.argv[2]
+try: text=open(path,encoding="utf-8").read()
+except FileNotFoundError: sys.exit(0)
+out=[]; lines=text.splitlines(True); i=0; changed=False
+while i < len(lines):
+    line=lines[i]; out.append(line)
+    if re.match(r"^\[Containments\]\[[0-9]+\]\[Wallpaper\]\[org\.kde\.image\]\[General\]", line):
+        i+=1
+        while i < len(lines) and not lines[i].startswith("["):
+            if lines[i].startswith("Image="):
+                out.append("Image="+img+"\n"); changed=True
+            else:
+                out.append(lines[i])
+            i+=1
+        continue
+    i+=1
+if changed: open(path,"w",encoding="utf-8").write("".join(out))
+PY
+  fi
+  if [ -n "$KW" ]; then
+    "$KW" --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "$lock"
+  fi
+  # Ask Plasma to reload wallpaper without a full restart when possible.
+  if command -v qdbus6 >/dev/null; then
+    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript \
+      "var a=desktops(); for (var i=0;i<a.length;i++){ a[i].currentConfigGroup=['Wallpaper','org.kde.image','General']; a[i].writeConfig('Image','$desk'); a[i].reloadConfig(); }" \
+      >/dev/null 2>&1 || true
+  elif command -v qdbus >/dev/null; then
+    qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript \
+      "var a=desktops(); for (var i=0;i<a.length;i++){ a[i].currentConfigGroup=['Wallpaper','org.kde.image','General']; a[i].writeConfig('Image','$desk'); a[i].reloadConfig(); }" \
+      >/dev/null 2>&1 || true
+  fi
+  command -v notify-send >/dev/null && notify-send -a ProtocolOS -i protocolos \
+    "Тема ProtocolOS" "$([ "$m" = light ] && echo 'Светлая: день на столе, ночь на блокировке' || echo 'Тёмная: ночь на столе, день на блокировке')"
+  echo "$m"
+}
+
+case "${1:-status}" in
+  status) echo "$cur" ;;
+  toggle) [ "$cur" = dark ] && set_mode light || set_mode dark ;;
+  dark|light) set_mode "$1" ;;
+  *) echo "usage: $0 dark|light|toggle|status"; exit 2 ;;
+esac

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=PDF
+GenericName=Читалка PDF / EPUB
+Exec=/usr/local/bin/protocolos-office pdf
+Icon=okular
+Terminal=false

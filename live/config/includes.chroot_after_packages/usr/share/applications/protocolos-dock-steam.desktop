@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Steam
+Exec=/usr/local/bin/protocolos-steam
+Icon=protocolos-steam
+StartupWMClass=steam
+NoDisplay=true
+Terminal=false

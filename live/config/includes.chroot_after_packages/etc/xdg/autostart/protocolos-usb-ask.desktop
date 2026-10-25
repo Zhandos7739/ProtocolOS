@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS USBGuard ask
+Comment=Спрашивать разрешение на новое USB-устройство
+Exec=/usr/local/bin/protocolos-usb-ask
+Icon=drive-removable-media
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2
+X-GNOME-Autostart-enabled=true

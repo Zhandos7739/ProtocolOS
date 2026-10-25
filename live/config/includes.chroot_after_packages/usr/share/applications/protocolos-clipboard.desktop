@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Буфер обмена
+Name[ru]=Буфер обмена
+Comment=Meta+V — история буфера; очистка — кнопка в меню
+Comment[ru]=Meta+V — история буфера; очистка — кнопка в меню
+Exec=/usr/local/bin/protocolos-clipboard open
+Icon=klipper
+Categories=Utility;
+StartupNotify=false
+Actions=Clear;
+
+[Desktop Action Clear]
+Name=Очистить буфер
+Name[ru]=Очистить буфер
+Exec=/usr/local/bin/protocolos-clipboard clear

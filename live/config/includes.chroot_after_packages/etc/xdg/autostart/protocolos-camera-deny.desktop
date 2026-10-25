@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS camera deny
+Exec=/usr/local/bin/protocolos-camera ensure-denied
+Icon=camera-web
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=1

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Impress
+Comment=Презентации PowerPoint
+Exec=/usr/local/bin/protocolos-office impress
+Icon=protocolos-impress
+StartupWMClass=libreoffice-impress
+NoDisplay=true
+Terminal=false

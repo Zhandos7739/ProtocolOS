@@ -15,13 +15,13 @@ table inet $TABLE {
 NFT
   nmcli networking off 2>/dev/null || true
   command -v rfkill >/dev/null && rfkill block all 2>/dev/null || true
-  touch "$STATE"; echo "BLACKOUT: сеть отключена"
+  touch "$STATE"; /usr/local/bin/protocolos-sound deny >/dev/null 2>&1 || true; echo "BLACKOUT: сеть отключена"
 }
 off() {
   nft delete table inet $TABLE 2>/dev/null || true
   command -v rfkill >/dev/null && rfkill unblock all 2>/dev/null || true
   nmcli networking on 2>/dev/null || true
-  rm -f "$STATE"; echo "BLACKOUT снят: сеть восстановлена"
+  rm -f "$STATE"; /usr/local/bin/protocolos-sound accept >/dev/null 2>&1 || true; echo "BLACKOUT снят: сеть восстановлена"
 }
 status() { nft list table inet $TABLE >/dev/null 2>&1 && echo on || echo off; }
 case "${1:-toggle}" in

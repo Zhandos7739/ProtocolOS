@@ -3,10 +3,22 @@
 set -u; mkdir -p /var/lib/protocolos
 ufw --force default deny incoming; ufw --force default allow outgoing; ufw --force enable
 aa-enforce /etc/apparmor.d/* >/dev/null 2>&1 || true
-if ping -c1 -W3 deb.debian.org >/dev/null 2>&1; then
+# USBGuard: разрешить уже подключённые устройства (клавиатура/мышь)
+/usr/local/bin/protocolos-usb-seed || true
+systemctl enable --now usbguard >/dev/null 2>&1 || true
+systemctl enable --now systemd-resolved >/dev/null 2>&1 || true
+# live/установленный пользователь → plugdev для USBGuard IPC
+for u in protocol user debian live; do
+  id "$u" >/dev/null 2>&1 && usermod -aG plugdev "$u" 2>/dev/null || true
+done
+getent passwd | awk -F: '$3>=1000 && $3<65534 {print $1}' | while read -r u; do
+  usermod -aG plugdev "$u" 2>/dev/null || true
+done
+if ping -c1 -W3 deb.debian.org >/dev/null 2>&1 || ping -c1 -W3 1.1.1.1 >/dev/null 2>&1; then
   systemctl stop clamav-freshclam; freshclam --quiet || true; systemctl start clamav-freshclam
   /usr/local/bin/protocolos-sigs-update || true
   flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
   flatpak info com.discordapp.Discord >/dev/null 2>&1 || flatpak install -y --noninteractive flathub com.discordapp.Discord || true
+  flatpak info com.valvesoftware.Steam >/dev/null 2>&1 || flatpak install -y --noninteractive flathub com.valvesoftware.Steam || true
   touch /var/lib/protocolos/firstboot.done
 fi

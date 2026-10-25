@@ -1,0 +1,30 @@
+[Desktop Entry]
+Type=Application
+Name=Офис ProtocolOS
+Name[ru]=Офис ProtocolOS
+Comment=Writer, Calc, Impress, PDF
+Exec=/usr/local/bin/protocolos-office start
+Icon=protocolos-writer
+Categories=Office;
+StartupNotify=true
+Actions=Writer;Sheets;Impress;Pdf;Draw;
+
+[Desktop Action Writer]
+Name=Writer (Word)
+Exec=/usr/local/bin/protocolos-office writer
+
+[Desktop Action Sheets]
+Name=Calc (Excel)
+Exec=/usr/local/bin/protocolos-office calc
+
+[Desktop Action Impress]
+Name=Impress (PowerPoint)
+Exec=/usr/local/bin/protocolos-office impress
+
+[Desktop Action Pdf]
+Name=PDF (Okular)
+Exec=/usr/local/bin/protocolos-office pdf
+
+[Desktop Action Draw]
+Name=Draw
+Exec=/usr/local/bin/protocolos-office draw

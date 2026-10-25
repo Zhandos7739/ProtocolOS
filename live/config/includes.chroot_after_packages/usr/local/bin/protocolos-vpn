@@ -1,0 +1,312 @@
+#!/bin/bash
+# ProtocolOS VPN — кнопка + профили как в Happ (подписка / импорт / вкл-выкл).
+# Бэкенд: NetworkManager WireGuard + OpenVPN.
+set -u
+DIR="${XDG_CONFIG_HOME:-$HOME/.config}/protocolos/vpn"
+PROFILES="$DIR/profiles"
+META="$DIR/meta.json"
+mkdir -p "$PROFILES"
+
+notify() {
+  command -v notify-send >/dev/null || return 0
+  notify-send -a ProtocolOS -i protocolos-vpn "$@"
+}
+
+json_get() {
+  python3 - "$META" "$1" <<'PY' 2>/dev/null || true
+import json,sys
+p,key=sys.argv[1],sys.argv[2]
+try: d=json.load(open(p))
+except Exception: d={}
+v=d.get(key,"")
+print(v if v is not None else "")
+PY
+}
+
+json_set() {
+  python3 - "$META" "$1" "$2" <<'PY'
+import json,sys,os
+p,key,val=sys.argv[1],sys.argv[2],sys.argv[3]
+os.makedirs(os.path.dirname(p),exist_ok=True)
+try: d=json.load(open(p))
+except Exception: d={}
+d[key]=val
+json.dump(d,open(p,"w"),ensure_ascii=False,indent=2)
+PY
+}
+
+slug() {
+  echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9а-яё_-]\+/-/g; s/^-//; s/-$//' | head -c 48
+  echo
+}
+
+nm_active_vpn() {
+  nmcli -t -f TYPE,NAME,DEVICE connection show --active 2>/dev/null \
+    | awk -F: '$1=="vpn" || $1=="wireguard" {print $2; exit}'
+}
+
+nm_is_up() {
+  local name=$1
+  nmcli -t -f NAME connection show --active 2>/dev/null | grep -Fxq "$name"
+}
+
+profile_path() {
+  local id=$1
+  ls "$PROFILES/$id".{conf,wg.conf,ovpn} 2>/dev/null | head -1
+}
+
+list_profiles() {
+  python3 - "$PROFILES" "$META" <<'PY'
+import json,os,sys
+prof,meta_p=sys.argv[1],sys.argv[2]
+try: meta=json.load(open(meta_p))
+except Exception: meta={}
+active=meta.get("active","")
+sub=meta.get("subscription","")
+names=[]
+for f in sorted(os.listdir(prof)):
+    if f.endswith((".conf",".ovpn")):
+        names.append(os.path.splitext(f)[0].replace(".wg",""))
+# unique preserving order
+seen=set(); out=[]
+for n in names:
+    if n in seen: continue
+    seen.add(n); out.append(n)
+print("active="+active)
+print("subscription="+sub)
+print("count="+str(len(out)))
+for n in out:
+    print("profile="+n)
+PY
+}
+
+status() {
+  local up
+  up=$(nm_active_vpn || true)
+  echo "connected=$([ -n "$up" ] && echo 1 || echo 0)"
+  echo "active=${up:-}"
+  echo "selected=$(json_get active)"
+  echo "subscription=$(json_get subscription)"
+  local n=0
+  shopt -s nullglob
+  for f in "$PROFILES"/*.conf "$PROFILES"/*.ovpn; do
+    n=$((n+1))
+  done
+  shopt -u nullglob
+  echo "profiles=$n"
+}
+
+import_file() {
+  local src=$1
+  [ -f "$src" ] || { echo "no file"; return 1; }
+  local base name id dest
+  base=$(basename "$src")
+  name="${2:-${base%.*}}"
+  id=$(slug "$name")
+  [ -z "$id" ] && id="vpn-$RANDOM"
+  case "$base" in
+    *.ovpn)
+      dest="$PROFILES/$id.ovpn"
+      cp "$src" "$dest"
+      nmcli connection delete "$id" >/dev/null 2>&1 || true
+      nmcli connection import type openvpn file "$dest" >/dev/null 2>&1 || {
+        # имя соединения = имя файла
+        nmcli connection import type openvpn file "$dest" 2>&1 | tail -1
+      }
+      # переименовать соединение NM под id
+      local imported
+      imported=$(nmcli -t -f NAME connection show 2>/dev/null | grep -F "$id" | head -1 || true)
+      if [ -z "$imported" ]; then
+        imported=$(nmcli -t -f NAME,FILENAME connection show 2>/dev/null | awk -F: -v d="$dest" '$2 ~ d {print $1; exit}')
+      fi
+      [ -n "$imported" ] && [ "$imported" != "$id" ] && nmcli connection modify "$imported" connection.id "$id" 2>/dev/null || true
+      ;;
+    *)
+      dest="$PROFILES/$id.conf"
+      cp "$src" "$dest"
+      # WireGuard
+      nmcli connection delete "$id" >/dev/null 2>&1 || true
+      if ! nmcli connection import type wireguard file "$dest" >/dev/null 2>&1; then
+        # fallback: wg-quick через polkit helper
+        cp "$dest" "/tmp/protocolos-vpn-$id.conf"
+      fi
+      imported=$(nmcli -t -f NAME connection show 2>/dev/null | grep -F "$id" | head -1 || true)
+      if [ -z "$imported" ]; then
+        imported=$(basename "$dest" .conf)
+        nmcli connection modify "$imported" connection.id "$id" 2>/dev/null || true
+      fi
+      ;;
+  esac
+  json_set active "$id"
+  notify "VPN" "Профиль «$id» добавлен"
+  echo "ok id=$id"
+}
+
+import_text() {
+  local name=${1:-imported}
+  local tmp
+  tmp=$(mktemp /tmp/protocolos-vpn.XXXXXX)
+  cat > "$tmp"
+  if grep -q '\[Interface\]' "$tmp" 2>/dev/null; then
+    mv "$tmp" "$tmp.conf"
+    import_file "$tmp.conf" "$name"
+    rm -f "$tmp.conf"
+  elif grep -qi 'client\|remote ' "$tmp" 2>/dev/null; then
+    mv "$tmp" "$tmp.ovpn"
+    import_file "$tmp.ovpn" "$name"
+    rm -f "$tmp.ovpn"
+  else
+    rm -f "$tmp"
+    echo "unknown format"; return 1
+  fi
+}
+
+set_subscription() {
+  local url=$1
+  json_set subscription "$url"
+  notify "VPN" "Подписка сохранена"
+}
+
+update_subscription() {
+  local url
+  url=$(json_get subscription)
+  [ -n "$url" ] || { notify "VPN" "Сначала укажите URL подписки в настройках"; return 1; }
+  local raw decoded tmpdir n
+  tmpdir=$(mktemp -d /tmp/protocolos-vpn-sub.XXXXXX)
+  raw="$tmpdir/raw"
+  if ! curl -fsSL --max-time 30 "$url" -o "$raw"; then
+    notify "VPN" "Не удалось скачать подписку"
+    rm -rf "$tmpdir"; return 1
+  fi
+  # base64 (как у Happ) или plain
+  if base64 -d < "$raw" > "$tmpdir/dec" 2>/dev/null && [ -s "$tmpdir/dec" ]; then
+    decoded="$tmpdir/dec"
+  else
+    decoded="$raw"
+  fi
+  n=0
+  # несколько WG-блоков или ссылки на .conf
+  if grep -q '\[Interface\]' "$decoded"; then
+    python3 - "$decoded" "$tmpdir" <<'PY'
+import sys,re,os
+text=open(sys.argv[1],encoding="utf-8",errors="ignore").read()
+parts=re.split(r'(?=\[Interface\])', text)
+outdir=sys.argv[2]; i=0
+for p in parts:
+    p=p.strip()
+    if not p.startswith('[Interface]'): continue
+    i+=1
+    open(os.path.join(outdir,f"sub-{i}.conf"),"w").write(p+"\n")
+print(i)
+PY
+    for f in "$tmpdir"/sub-*.conf; do
+      [ -f "$f" ] || continue
+      import_file "$f" "sub-$(basename "$f" .conf)" >/dev/null || true
+      n=$((n+1))
+    done
+  else
+    # построчно: http(s) ссылки на conf / либо vless — пропускаем с предупреждением
+    while IFS= read -r line; do
+      line=$(echo "$line" | tr -d '\r')
+      [ -z "$line" ] && continue
+      case "$line" in
+        vless://*|vmess://*|trojan://*|ss://*)
+          echo "skip_proxy=$line" >> "$tmpdir/skipped"
+          ;;
+        http://*|https://*)
+          curl -fsSL --max-time 20 "$line" -o "$tmpdir/one.conf" && import_file "$tmpdir/one.conf" "sub-$n" >/dev/null && n=$((n+1)) || true
+          ;;
+        *)
+          if echo "$line" | grep -q '\[Interface\]'; then
+            echo "$line" > "$tmpdir/one.conf"
+            import_file "$tmpdir/one.conf" "sub-$n" >/dev/null && n=$((n+1)) || true
+          fi
+          ;;
+      esac
+    done < "$decoded"
+  fi
+  if [ -f "$tmpdir/skipped" ]; then
+    notify "VPN" "Подписка: $n профилей WG/OVPN. VLESS/VMess — пока только WireGuard/OpenVPN."
+  else
+    notify "VPN" "Подписка обновлена: $n профилей"
+  fi
+  rm -rf "$tmpdir"
+  echo "imported=$n"
+}
+
+connect_id() {
+  local id=${1:-$(json_get active)}
+  [ -n "$id" ] || { notify "VPN" "Нет выбранного профиля"; return 1; }
+  json_set active "$id"
+  # снять другие наши vpn
+  disconnect_all_quiet
+  if nmcli connection up "$id" >/dev/null 2>&1; then
+    notify "VPN включён" "$id"
+    echo "ok connected=$id"
+    return 0
+  fi
+  # wg-quick fallback
+  local p
+  p=$(profile_path "$id")
+  if [ -n "$p" ] && [[ "$p" == *.conf ]] && command -v pkexec >/dev/null; then
+    if pkexec /usr/local/lib/protocolos/vpn-wg.sh up "$p" "$id"; then
+      notify "VPN включён" "$id (wg-quick)"
+      echo "ok connected=$id"
+      return 0
+    fi
+  fi
+  notify "VPN" "Не удалось подключить «$id»"
+  return 1
+}
+
+disconnect_all_quiet() {
+  local n
+  while IFS= read -r n; do
+    [ -n "$n" ] && nmcli connection down "$n" >/dev/null 2>&1 || true
+  done < <(nmcli -t -f TYPE,NAME connection show --active 2>/dev/null | awk -F: '$1=="vpn" || $1=="wireguard" {print $2}')
+  pkexec /usr/local/lib/protocolos/vpn-wg.sh down-all >/dev/null 2>&1 || true
+}
+
+disconnect_vpn() {
+  disconnect_all_quiet
+  notify "VPN выключен" "Соединение разорвано"
+  echo "ok disconnected"
+}
+
+toggle_vpn() {
+  if [ "$(status | awk -F= '/^connected=/{print $2}')" = 1 ]; then
+    disconnect_vpn
+  else
+    connect_id "$(json_get active)"
+  fi
+}
+
+delete_id() {
+  local id=$1
+  [ -n "$id" ] || return 1
+  nmcli connection delete "$id" >/dev/null 2>&1 || true
+  rm -f "$PROFILES/$id".conf "$PROFILES/$id".wg.conf "$PROFILES/$id".ovpn
+  [ "$(json_get active)" = "$id" ] && json_set active ""
+  notify "VPN" "Профиль «$id» удалён"
+}
+
+case "${1:-status}" in
+  status) status ;;
+  list) list_profiles ;;
+  toggle) toggle_vpn ;;
+  connect) connect_id "${2:-}" ;;
+  disconnect|down) disconnect_vpn ;;
+  import) import_file "${2:-}" "${3:-}" ;;
+  import-text) import_text "${2:-imported}" ;;
+  set-sub|subscription) set_subscription "${2:-}" ;;
+  update-sub|refresh) update_subscription ;;
+  set-active) json_set active "${2:-}"; echo ok ;;
+  delete|remove) delete_id "${2:-}" ;;
+  settings)
+    exec /usr/local/bin/protocolos-vpn-settings
+    ;;
+  *)
+    echo "usage: $0 status|list|toggle|connect|disconnect|import|import-text|set-sub|update-sub|set-active|delete|settings"
+    exit 2
+    ;;
+esac

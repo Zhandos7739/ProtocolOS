@@ -23,7 +23,7 @@ PlasmoidItem {
     P5Support.DataSource {
         id: ex; engine: "executable"
         connectedSources: [root.statusCmd, root.tempCmd]
-        interval: 15000
+        interval: 45000
         onNewData: (src, data) => {
             if (src === root.statusCmd) {
                 var o = {}
@@ -65,10 +65,10 @@ PlasmoidItem {
                 label: "ЦП " + root.cpuTemp + "°C"; glyph: "temperature-normal"
             }
             Pill {
-                fill: root.blackout ? Qt.rgba(1, 0.16, 0.24, 0.55) : (root.ok ? Qt.rgba(0.31, 1, 0.67, 0.25) : Qt.rgba(1, 0.75, 0.2, 0.3))
-                line: root.blackout ? "#ff8a95" : (root.ok ? Qt.rgba(0.55, 1, 0.78, 0.6) : Qt.rgba(1, 0.85, 0.5, 0.7))
+                fill: root.blackout ? Qt.rgba(1, 0.16, 0.24, 0.55) : (root.ok ? Qt.rgba(80/255, 1, 170/255, 0.25) : Qt.rgba(1, 0.75, 0.2, 0.3))
+                line: root.blackout ? "#ff8a95" : (root.ok ? Qt.rgba(140/255, 1, 200/255, 0.6) : Qt.rgba(1, 0.85, 0.5, 0.7))
                 label: root.blackout ? "BLACKOUT" : (root.ok ? "Защита активна" : "Внимание")
-                glyph: root.blackout ? "network-offline" : "security-high"
+                glyph: root.blackout ? "network-offline" : "protocolos-shield"
             }
         }
         MouseArea { anchors.fill: parent; onClicked: root.expanded = !root.expanded }

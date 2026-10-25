@@ -1,0 +1,54 @@
+#!/bin/bash
+# ProtocolOS буфер: Win+V / Meta+V — открыть историю; clear — кнопка очистки внутри.
+set -u
+cmd="${1:-open}"
+
+dbus_call() {
+  local method=$1
+  if command -v qdbus6 >/dev/null; then
+    qdbus6 org.kde.klipper /klipper "org.kde.klipper.klipper.$method" >/dev/null 2>&1 && return 0
+    qdbus6 org.kde.klipper /klipper "$method" >/dev/null 2>&1 && return 0
+  fi
+  if command -v qdbus >/dev/null; then
+    qdbus org.kde.klipper /klipper "org.kde.klipper.klipper.$method" >/dev/null 2>&1 && return 0
+  fi
+  return 1
+}
+
+open_history() {
+  # Как Win+V: показать историю буфера (Klipper); очистка — кнопка в меню
+  if dbus_call showKlipperPopupMenu; then
+    return 0
+  fi
+  # запасной путь: активировать виджет буфера в трее
+  if command -v qdbus6 >/dev/null; then
+    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript \
+      "var a=panels(); for(var i=0;i<a.length;i++){var w=a[i].widgets('org.kde.plasma.clipboard'); for(var j=0;j<w.length;j++){w[j].expanded=true;}}" \
+      >/dev/null 2>&1 && return 0
+  fi
+  if command -v notify-send >/dev/null; then
+    notify-send -a ProtocolOS -i klipper "Буфер обмена" "Откройте значок буфера в трее (Meta+V)"
+  fi
+  return 1
+}
+
+do_clear() {
+  dbus_call clearClipboardHistory || true
+  dbus_call clearClipboardContents || true
+  if command -v wl-copy >/dev/null; then
+    wl-copy --clear >/dev/null 2>&1 || printf '' | wl-copy >/dev/null 2>&1 || true
+  fi
+  if command -v xclip >/dev/null; then
+    printf '' | xclip -selection clipboard >/dev/null 2>&1 || true
+  fi
+  rm -f "${XDG_CACHE_HOME:-$HOME/.cache}/protocolos/file-clipboard" 2>/dev/null || true
+  if command -v notify-send >/dev/null; then
+    notify-send -a ProtocolOS -i edit-clear "Буфер очищен" "История и содержимое сброшены"
+  fi
+}
+
+case "$cmd" in
+  open|show|popup|history|"") open_history ;;
+  clear|erase|wipe) do_clear ;;
+  *) echo "usage: $0 open|clear"; exit 2 ;;
+esac

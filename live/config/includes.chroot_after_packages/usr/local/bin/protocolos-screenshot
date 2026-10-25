@@ -1,0 +1,53 @@
+#!/bin/bash
+# ProtocolOS screenshots (Windows-like):
+#   full | region | window | save
+# Uses Spectacle; falls back to grim/gnome-screenshot only if missing.
+set -u
+SP=$(command -v spectacle || true)
+notify() {
+  command -v notify-send >/dev/null || return 0
+  notify-send -a ProtocolOS -i spectacle "$@"
+}
+ensure_dir() {
+  local d
+  d="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Pictures")/Screenshots"
+  mkdir -p "$d"
+  echo "$d"
+}
+
+if [ -z "$SP" ]; then
+  notify "Скриншоты" "Spectacle не установлен"
+  exit 1
+fi
+
+case "${1:-full}" in
+  full|print|prtscr)
+    # Classic Win PrtSc: весь экран → буфер обмена
+    "$SP" -b -c -f >/dev/null 2>&1 &
+    notify "Скриншот" "Экран скопирован в буфер (как Print Screen)"
+    ;;
+  save|winprint)
+    # Win+PrtSc: сохранить файл
+    dir=$(ensure_dir)
+    ts=$(date +%Y-%m-%d_%H-%M-%S)
+    out="$dir/ProtocolOS_$ts.png"
+    "$SP" -b -n -f -o "$out" >/dev/null 2>&1 &
+    notify "Скриншот сохранён" "$out"
+    ;;
+  region|snip|winshifts)
+    # Win+Shift+S: область
+    "$SP" -b -c -r >/dev/null 2>&1 &
+    ;;
+  window|altprint)
+    # Alt+PrtSc: активное окно → буфер
+    "$SP" -b -c -a >/dev/null 2>&1 &
+    notify "Скриншот" "Окно скопировано в буфер (как Alt+Print Screen)"
+    ;;
+  gui|open)
+    "$SP" >/dev/null 2>&1 &
+    ;;
+  *)
+    echo "usage: $0 full|region|window|save|gui"
+    exit 2
+    ;;
+esac

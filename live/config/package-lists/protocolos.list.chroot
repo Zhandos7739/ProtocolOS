@@ -26,8 +26,26 @@ qt6-style-kvantum
 papirus-icon-theme
 fonts-inter
 fonts-noto-core
+fonts-liberation
+fonts-dejavu-core
 xdg-user-dirs
+# --- офис: PDF / Word / Excel / PowerPoint и др. ---
+libreoffice-writer
+libreoffice-calc
+libreoffice-impress
+libreoffice-draw
+libreoffice-gtk3
+libreoffice-l10n-ru
+libreoffice-help-ru
+hunspell-ru
+hyphen-ru
+mythes-ru
 network-manager
+# VPN (кнопка + настройки как Happ): WireGuard / OpenVPN
+wireguard
+wireguard-tools
+openvpn
+network-manager-openvpn
 pipewire-audio
 wireplumber
 locales
@@ -40,9 +58,17 @@ ca-certificates
 firefox-esr
 firefox-esr-l10n-ru
 flatpak
+kcalc
+kdialog
 kooha
 obs-studio
 kdenlive
+# --- games (Steam Flatpak + Proton внутри Steam; GameMode на хосте) ---
+gamemode
+libgamemode0
+libgamemodeauto0
+steam-devices
+psmisc
 # --- security ---
 clamav
 clamav-daemon
@@ -50,6 +76,7 @@ clamav-freshclam
 clamtk
 opensnitch
 python3-opensnitch-ui
+usbguard
 ufw
 nftables
 apparmor
@@ -58,14 +85,25 @@ apparmor-profiles-extra
 apparmor-utils
 polkitd
 pkexec
+# песочница
+firejail
+firejail-profiles
+bubblewrap
+# DNS-over-TLS
+systemd-resolved
 # --- performance ---
 systemd-zram-generator
 earlyoom
 preload
 linux-cpupower
+inotify-tools
 user-setup
 libnotify-bin
 qdbus-qt6
+wl-clipboard
+xclip
+brightnessctl
+xprintidle
 # --- installed system boot (UEFI + Secure Boot + dual boot) ---
 grub-efi-amd64-bin
 grub-efi-amd64-signed

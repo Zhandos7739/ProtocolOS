@@ -1,0 +1,114 @@
+#!/bin/bash
+# Resolve a Plasma wallpaper Image= value to a real image file.
+# Usage:
+#   protocolos-wall-resolve [--desktop] [path-or-package] [day|night]
+# --desktop reads the primary-screen wallpaper from the current user's Plasma config.
+set -u
+RC="${HOME:-}/.config/plasma-org.kde.plasma.desktop-appletsrc"
+
+desktop_image() {
+  [ -f "$RC" ] || return 1
+  awk '
+    function cid_of(s,   t) {
+      t=s
+      sub(/^\[Containments\]\[/, "", t)
+      sub(/\].*/, "", t)
+      return t
+    }
+    /^\[Containments\]\[[0-9]+\]$/ {
+      id=cid_of($0); screen[id]=-1; next
+    }
+    /^\[Containments\]\[[0-9]+\]\[Wallpaper\]\[org\.kde\.image\]\[General\]/ {
+      wid=cid_of($0); inimg=1; next
+    }
+    /^\[/ { inimg=0; next }
+    id != "" && !inimg && /^lastScreen=/ {
+      split($0, a, "="); screen[id]=a[2]+0; next
+    }
+    inimg && /^Image=/ {
+      img=$0; sub(/^Image=/, "", img)
+      if (screen[wid] == 0) { print img; found=1; exit }
+      if (first == "") first=img
+    }
+    END { if (!found && first != "") print first }
+  ' "$RC"
+}
+
+pick_day() {
+  local pkg=$1 d
+  for d in "$pkg/contents/images/1920x1080.jpg" \
+           "$pkg/contents/images/3840x2160.jpg"; do
+    [ -f "$d" ] && { echo "$d"; return 0; }
+  done
+  d=$(ls "$pkg/contents/images/"*.jpg "$pkg/contents/images/"*.png 2>/dev/null | head -1)
+  [ -n "${d:-}" ] && [ -f "$d" ] && { echo "$d"; return 0; }
+  return 1
+}
+
+pick_night() {
+  local pkg=$1
+  [ -f "$pkg/contents/night/night.jpg" ] && { echo "$pkg/contents/night/night.jpg"; return 0; }
+  if [ "$(basename "$pkg")" = ProtocolOS ] && [ -f "$pkg/contents/images/1920x1080.jpg" ]; then
+    echo "$pkg/contents/images/1920x1080.jpg"; return 0
+  fi
+  pick_day "$pkg"
+}
+
+resolve() {
+  local raw=${1-} want=${2-} p pkg
+  p=${raw#file://}
+  p=${p%%\?}
+  [ -n "$p" ] || return 1
+
+  if [ -f "$p" ]; then
+    case "$want" in
+      day|night)
+        case "$p" in
+          *wallpapers/*)
+            pkg=$(echo "$p" | sed -E 's#(.*wallpapers/[^/]+).*#\1#')
+            ;;
+          *)
+            pkg=""
+            ;;
+        esac
+        if [ -n "$pkg" ] && [ -d "$pkg" ]; then
+          if [ "$want" = night ]; then pick_night "$pkg"; else pick_day "$pkg"; fi
+          return $?
+        fi
+        ;;
+    esac
+    echo "$p"
+    return 0
+  fi
+
+  if [ -d "$p" ]; then
+    pkg=${p%/}
+  else
+    case "$p" in
+      ProtocolOS*) pkg=/usr/share/wallpapers/$p ;;
+      *) return 1 ;;
+    esac
+  fi
+  [ -d "$pkg" ] || return 1
+
+  case "$want" in
+    night) pick_night "$pkg" ;;
+    day)   pick_day "$pkg" ;;
+    *)     pick_day "$pkg" || pick_night "$pkg" ;;
+  esac
+}
+
+if [ "${1-}" = "--desktop" ]; then
+  shift
+  img=$(desktop_image) || exit 1
+  [ -n "$img" ] || exit 1
+  if out=$(resolve "$img" "${1-}"); then
+    echo "$out"
+    exit 0
+  fi
+  # Raw Image= path (package name or missing file on a build host): still useful for wallsync.
+  echo "${img#file://}"
+  exit 0
+fi
+
+resolve "${1-}" "${2-}"

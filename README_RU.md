@@ -37,7 +37,8 @@ sudo ./protocolos-setup.sh
 ## Что включено
 - Firefox ESR, Discord (Flatpak, Flathub; если при сборке не было сети — ставится при первом запуске с сетью).
 - ClamAV + clamd + clamonacc (реальное время в /home) + ClamTk; доп. сигнатуры URLhaus и Sanesecurity — `protocolos-sigs-update` по таймеру каждые 6 ч (пакета clamav-unofficial-sigs в Debian 13 нет, поэтому своя замена).
-- OpenSnitch: `DefaultAction=deny` — неизвестный процесс не выходит в интернет, пока вы не разрешите во всплывающем окне. Заранее разрешены: Firefox, NetworkManager/DHCP, resolved/timesyncd, freshclam, apt, flatpak, Discover, Discord.
+- OpenSnitch: `DefaultAction=deny` — неизвестный процесс не выходит в интернет, пока вы не разрешите во всплывающем окне. Заранее (навсегда) разрешены только системные службы: NetworkManager/DHCP, resolved/timesyncd, freshclam, apt, flatpak-helper, curl только к зеркалам сигнатур. Firefox, Discord, Discover и остальные приложения спрашивают при каждом выходе в сеть; раз в неделю пользовательские разрешения сбрасываются.
+- Тема: по умолчанию тёмная — на рабочем столе ночные/чёрные обои (`ProtocolOS`), на экране блокировки дневные (`ProtocolOS-day`). Переключение: `protocolos-theme toggle` (или «Тема ProtocolOS» в меню). Мультимонитор: плитки и панели только на основном экране, обои на всех; окна в доке со всех мониторов.
 - ufw: входящие запрещены, исходящие разрешены. AppArmor включён, профили в enforce.
 - Blackout: `protocolos-blackout on|off|toggle|status`, ярлык на столе и в доке, переключатель в виджете «Защита». Делает `nmcli networking off` + rfkill + таблицу nftables с drop-all (приоритет −500, работает поверх ufw/OpenSnitch).
 - Kooha и OBS Studio (запись экрана), Kdenlive (видеоредактор).
@@ -46,14 +47,14 @@ sudo ./protocolos-setup.sh
 ## Соответствие макету (shots/01_desktop.png, 18–20)
 | Элемент макета | Реализация | Совпадение |
 |---|---|---|
-| Ночные обои | `wall/night.jpg` → обои рабочего стола, экрана блокировки, SDDM | полное |
+| Ночные обои | стол = `ProtocolOS` (night), блокировка = `ProtocolOS-day` (swap), SDDM = night | полное |
 | Верхняя полупрозрачная строка | плавающая панель Plasma сверху, тема Breeze Dark + blur | близко |
-| «ProtocolOS» слева | Kickoff с подписью «ProtocolOS» и иконкой-щитом | близко (вместо ромба — щит) |
+| «ProtocolOS» слева | Kickoff с подписью «ProtocolOS» и ромбом `protocolos-mark` | полное |
 | «Файл Вид Окно» | виджет «Глобальное меню» (показывает меню активного приложения) | функционально |
 | Значок «Защита активна» | собственный плазмоид `org.protocolos.shield` (капсула) | близко |
 | Wi‑Fi, батарея, RU, дата | системный лоток + раскладка + часы с датой | близко |
 | Температура CPU | System Monitor Sensor (text-only), `cpu/all/averageTemperature` | близко (в ВМ датчика нет — пусто) |
-| Стеклянные плитки приложений | значки рабочего стола (Folder View, крупные) | **частично**: Plasma рисует значки без «стеклянной» подложки-карточки |
+| Стеклянные плитки приложений | плазмоид `org.protocolos.tiles` (7 плиток как в HTML, Liquid Glass) | близко |
 | «Sandbox Mod» (игра 4.2 ГБ) | заменён на Discord — игры в составе нет | нет |
 | Правая колонка папок | второй Folder View справа (Проекты, Документы, Загрузки, Изображения, Система, Корзина) | близко |
 | Виджет «Защита активна» + Блэкаут | плазмоид: статусы clamonacc/последняя проверка/AppArmor/ufw + переключатель Blackout | близко |

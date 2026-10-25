@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Writer
+GenericName=Документы Word
+Exec=/usr/local/bin/protocolos-office writer
+Icon=libreoffice-writer
+Terminal=false

@@ -1,0 +1,19 @@
+#!/bin/bash
+# Запуск Steam (Flatpak) с GameMode для Rust / GMod / Proton.
+set -u
+export STEAM_FORCE_DESKTOPUI_SCALING="${STEAM_FORCE_DESKTOPUI_SCALING:-1}"
+if ! flatpak info com.valvesoftware.Steam >/dev/null 2>&1 && ! flatpak info --user com.valvesoftware.Steam >/dev/null 2>&1; then
+  if command -v notify-send >/dev/null; then
+    notify-send -a ProtocolOS -i protocolos-steam "Steam" "Устанавливаю Steam из Flathub…"
+  fi
+  flatpak remote-add --user --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+  flatpak install -y --noninteractive --user flathub com.valvesoftware.Steam || {
+    command -v notify-send >/dev/null && notify-send -a ProtocolOS -i dialog-error "Steam" "Нужен интернет для установки"
+    exit 1
+  }
+fi
+# GameMode оборачивает процесс (если пакет установлен)
+if command -v gamemoderun >/dev/null; then
+  exec gamemoderun flatpak run com.valvesoftware.Steam "$@"
+fi
+exec flatpak run com.valvesoftware.Steam "$@"

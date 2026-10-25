@@ -1,0 +1,28 @@
+#!/bin/bash
+# Быстрые заметки ProtocolOS (Meta+N) — как стикеры / Quick Note.
+set -u
+DIR="${XDG_DATA_HOME:-$HOME/.local/share}/protocolos/notes"
+mkdir -p "$DIR"
+NOTE="$DIR/быстрые-заметки.md"
+if [ ! -f "$NOTE" ]; then
+  cat > "$NOTE" <<'E'
+# Быстрые заметки ProtocolOS
+
+Meta+N — открыть это окно.
+
+-
+E
+fi
+
+# предпочитаем kate (уже в пакетах), иначе kwrite / xdg-open
+if command -v kate >/dev/null; then
+  # одно окно, не тащить весь сеанс проектов
+  exec kate --new "$NOTE"
+fi
+if command -v kwrite >/dev/null; then
+  exec kwrite "$NOTE"
+fi
+if command -v mousepad >/dev/null; then
+  exec mousepad "$NOTE"
+fi
+exec xdg-open "$NOTE"

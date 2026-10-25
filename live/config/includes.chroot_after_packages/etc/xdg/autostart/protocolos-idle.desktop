@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS idle / sleep
+Exec=/usr/local/bin/protocolos-idle
+Icon=system-suspend
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

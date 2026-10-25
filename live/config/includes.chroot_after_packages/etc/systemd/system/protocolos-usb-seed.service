@@ -1,0 +1,10 @@
+[Unit]
+Description=ProtocolOS USBGuard seed allow for present devices
+After=local-fs.target
+Before=usbguard.service
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/protocolos-usb-seed
+RemainAfterExit=yes
+[Install]
+WantedBy=multi-user.target

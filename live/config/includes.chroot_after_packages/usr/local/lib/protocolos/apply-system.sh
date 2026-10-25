@@ -12,8 +12,26 @@ KV=/usr/share/Kvantum; if [ -d $KV/KvArcDark ]; then
       $KV/KvArcDark/KvArcDark.kvconfig > $KV/ProtocolGlass/ProtocolGlass.kvconfig
   grep -q '^translucent_windows' $KV/ProtocolGlass/ProtocolGlass.kvconfig || sed -i '/^\[General\]/a translucent_windows=true\nblurring=true\npopup_blurring=true\nreduce_window_opacity=18' $KV/ProtocolGlass/ProtocolGlass.kvconfig
 fi
-# SDDM фон
+# SDDM: ночной бренд-фон (логин). Стол/блокировка меняются местами через wallsync (тёмная тема).
 T=/usr/share/sddm/themes/breeze; [ -d $T ] && printf '[General]\nbackground=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg\ntype=image\n' > $T/theme.conf.user
+# Исполняемые хелперы темы/обоев
+chmod +x /usr/local/bin/protocolos-wallsync /usr/local/bin/protocolos-wall-resolve /usr/local/bin/protocolos-theme /usr/local/bin/protocolos-sound /usr/local/bin/protocolos-audio /usr/local/bin/protocolos-desktop-settings /usr/local/bin/protocolos-screenshot /usr/local/bin/protocolos-files /usr/local/bin/protocolos-usb-ask /usr/local/bin/protocolos-usb-seed /usr/local/bin/protocolos-privacy /usr/local/bin/protocolos-clipboard /usr/local/bin/protocolos-welcome /usr/local/bin/protocolos-steam /usr/local/bin/protocolos-sandbox /usr/local/bin/protocolos-camera /usr/local/bin/protocolos-notes /usr/local/bin/protocolos-office /usr/local/bin/protocolos-vpn /usr/local/bin/protocolos-vpn-settings /usr/local/bin/protocolos-power /usr/local/bin/protocolos-power-settings /usr/local/bin/protocolos-idle /usr/local/lib/protocolos/camera-acl.sh /usr/local/lib/protocolos/vpn-wg.sh 2>/dev/null || true
+# ассоциации файлов Word/Excel/PDF
+mkdir -p /etc/skel/.config
+[ -f /etc/xdg/mimeapps.list ] && cp -n /etc/xdg/mimeapps.list /etc/skel/.config/mimeapps.list 2>/dev/null || true
+# камера: применить udev-запрет
+udevadm control --reload-rules 2>/dev/null || true
+udevadm trigger --subsystem-match=video4linux 2>/dev/null || true
+# USBGuard: группа для IPC (запросы «разрешить?»)
+getent group plugdev >/dev/null || groupadd -r plugdev 2>/dev/null || true
+mkdir -p /etc/usbguard /var/log/usbguard
+[ -f /etc/usbguard/rules.conf ] || printf 'allow with-interface equals { 09:00:00 }\n' > /etc/usbguard/rules.conf
+# DNS-over-TLS: systemd-resolved
+if [ -d /etc/systemd/resolved.conf.d ]; then
+  systemctl enable systemd-resolved >/dev/null 2>&1 || true
+fi
+# NetworkManager ↔ resolved
+mkdir -p /etc/NetworkManager/conf.d
 # ufw: deny incoming
 sed -i 's/^DEFAULT_INPUT_POLICY=.*/DEFAULT_INPUT_POLICY="DROP"/; s/^DEFAULT_OUTPUT_POLICY=.*/DEFAULT_OUTPUT_POLICY="ACCEPT"/' /etc/default/ufw 2>/dev/null
 sed -i 's/^ENABLED=.*/ENABLED=yes/' /etc/ufw/ufw.conf 2>/dev/null
@@ -37,14 +55,23 @@ C
 fi
 mkdir -p /etc/systemd/system/clamav-clamonacc.service.d
 printf '[Service]\nNice=10\nIOSchedulingClass=idle\n' > /etc/systemd/system/clamav-clamonacc.service.d/protocolos.conf
+mkdir -p /etc/systemd/system/clamav-daemon.service.d /etc/systemd/system/clamav-freshclam.service.d /etc/systemd/system/opensnitch.service.d /etc/systemd/system/opensnitchd.service.d /etc/systemd/system/preload.service.d
+printf '[Service]\nNice=10\nIOSchedulingClass=idle\n' > /etc/systemd/system/clamav-daemon.service.d/protocolos.conf
+printf '[Service]\nNice=15\nIOSchedulingClass=idle\n' > /etc/systemd/system/clamav-freshclam.service.d/protocolos.conf
+printf '[Service]\nNice=5\n' > /etc/systemd/system/opensnitch.service.d/protocolos.conf
+printf '[Service]\nNice=5\n' > /etc/systemd/system/opensnitchd.service.d/protocolos.conf
+printf '[Service]\nNice=15\nIOSchedulingClass=idle\n' > /etc/systemd/system/preload.service.d/protocolos.conf
+# BBR if the module exists (faster WAN, lower bufferbloat)
+modprobe tcp_bbr 2>/dev/null || true
 # сервисы
-for s in ufw apparmor opensnitch clamav-daemon clamav-freshclam clamav-clamonacc earlyoom preload fstrim.timer protocolos-firstboot protocolos-cpugov protocolos-sigs.timer protocolos-net-reask.timer protocolos-login NetworkManager sddm; do systemctl enable $s >/dev/null 2>&1 && log "enabled $s"; done
-for s in NetworkManager-wait-online.service systemd-networkd-wait-online.service ModemManager.service man-db.timer e2scrub_all.timer e2scrub_reap.service apt-daily.timer cups-browsed.service avahi-daemon.service; do systemctl disable $s >/dev/null 2>&1 && log "disabled $s"; done
+for s in ufw apparmor opensnitch usbguard protocolos-usb-seed clamav-daemon clamav-freshclam clamav-clamonacc earlyoom preload fstrim.timer protocolos-firstboot protocolos-cpugov protocolos-sigs.timer protocolos-net-reask.timer protocolos-login NetworkManager systemd-resolved sddm; do systemctl enable $s >/dev/null 2>&1 && log "enabled $s"; done
+for s in NetworkManager-wait-online.service systemd-networkd-wait-online.service ModemManager.service man-db.timer e2scrub_all.timer e2scrub_reap.service apt-daily.timer apt-daily-upgrade.timer cups-browsed.service avahi-daemon.service; do systemctl disable $s >/dev/null 2>&1 && log "disabled $s"; done
 systemctl mask NetworkManager-wait-online.service >/dev/null 2>&1 || true
-# Flathub + Discord
+# Flathub + Discord + Steam (Proton внутри Steam)
 if command -v flatpak >/dev/null; then
   flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
   [ "${PROTOCOLOS_SKIP_DISCORD:-0}" = 1 ] || flatpak install -y --noninteractive flathub com.discordapp.Discord || log "Discord: будет установлен при первом запуске"
+  [ "${PROTOCOLOS_SKIP_STEAM:-0}" = 1 ] || flatpak install -y --noninteractive flathub com.valvesoftware.Steam || log "Steam: будет установлен при первом запуске / клике"
 fi
 # GRUB timeout для установленной системы
 # GRUB timeout: set in /etc/default/grub.d/protocolos.cfg (5 s, menu visible for dual boot)

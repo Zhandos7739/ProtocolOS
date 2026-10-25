@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Спящий режим
+Name[ru]=Спящий режим
+Comment=Предспящий 15 мин, монитор 20 мин, полный сон 3 ч; кнопка VPN
+Exec=/usr/local/bin/protocolos-power-settings
+Icon=system-suspend
+Categories=Settings;System;
+StartupNotify=false

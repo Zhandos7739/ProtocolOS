@@ -3,6 +3,52 @@
 xdg-user-dirs-update
 P=$HOME/.local/share/protocolos/places; mkdir -p "$P"
 DOC=$(xdg-user-dir DOCUMENTS); mkdir -p "$DOC/Проекты"
+# Папка для Win+Print Screen
+mkdir -p "$(xdg-user-dir PICTURES)/Screenshots" "$(xdg-user-dir VIDEOS)/Screencasts" "$(xdg-user-dir DESKTOP)" 2>/dev/null || true
+# Системные конфиги Plasma (хоткеи, поиск, Dolphin) — только если ещё нет своих
+mkdir -p "$HOME/.config/protocolos"
+for f in kglobalshortcutsrc spectaclerc krunnerrc dolphinrc klipperrc; do
+  if [ -f "/etc/xdg/$f" ] && [ ! -f "$HOME/.config/$f" ]; then
+    cp "/etc/xdg/$f" "$HOME/.config/$f"
+  fi
+done
+# Meta+V буфер; Meta+N заметки; Meta+стрелки snap; Meta+Shift+V VPN
+if [ ! -f "$HOME/.config/protocolos/shortcuts-v6.done" ]; then
+  if [ -f /etc/xdg/kglobalshortcutsrc ]; then
+    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q 'protocolos-vpn.desktop' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
+      cp /etc/xdg/kglobalshortcutsrc "$HOME/.config/kglobalshortcutsrc"
+    fi
+  fi
+  [ -f /etc/xdg/klipperrc ] && cp /etc/xdg/klipperrc "$HOME/.config/klipperrc"
+  [ -f /etc/xdg/krunnerrc ] && cp /etc/xdg/krunnerrc "$HOME/.config/krunnerrc"
+  touch "$HOME/.config/protocolos/shortcuts-v6.done"
+fi
+mkdir -p "$HOME/.config/protocolos/vpn/profiles"
+# питание / спящий режим + UI (VPN скрыт по умолчанию)
+for f in power.conf ui.conf; do
+  if [ -f "/etc/xdg/protocolos/$f" ] && [ ! -f "$HOME/.config/protocolos/$f" ]; then
+    cp "/etc/xdg/protocolos/$f" "$HOME/.config/protocolos/$f"
+  fi
+done
+if [ ! -f "$HOME/.config/protocolos/power-applied.done" ]; then
+  /usr/local/bin/protocolos-power apply >/dev/null 2>&1 || true
+  touch "$HOME/.config/protocolos/power-applied.done"
+fi
+# камера запрещена, пока явно не разрешат
+/usr/local/bin/protocolos-camera ensure-denied >/dev/null 2>&1 || true
+mkdir -p "$HOME/.local/share/protocolos/notes"
+# USBGuard IPC
+groups 2>/dev/null | grep -q plugdev || true
+# kwin: 2 рабочих стола по умолчанию
+if [ ! -f "$HOME/.config/protocolos/desktops-v1.done" ]; then
+  mkdir -p "$HOME/.config"
+  if [ ! -f "$HOME/.config/kwinrc" ] && [ -f /etc/xdg/kwinrc ]; then
+    cp /etc/xdg/kwinrc "$HOME/.config/kwinrc"
+  elif [ -f "$HOME/.config/kwinrc" ] && ! grep -q '^\[Desktops\]' "$HOME/.config/kwinrc" 2>/dev/null; then
+    printf '\n[Desktops]\nNumber=2\nRows=1\nName_1=Стол 1\nName_2=Стол 2\n' >> "$HOME/.config/kwinrc"
+  fi
+  touch "$HOME/.config/protocolos/desktops-v1.done"
+fi
 lnk(){ cat > "$P/$1.desktop" <<E
 [Desktop Entry]
 Type=Link

@@ -1,0 +1,14 @@
+#!/bin/bash
+# Открыть панель «Расположение» на рабочем столе ProtocolOS.
+set -u
+FLAG="$HOME/.config/protocolos/open-layout-settings"
+mkdir -p "$(dirname "$FLAG")"
+echo 1 >"$FLAG"
+notify-send -a ProtocolOS -i preferences-desktop-display \
+  "Расположение рабочего стола" \
+  "Откройте рабочий стол — панель настроек появится автоматически. Либо ПКМ по плиткам → Настроить → Расположение."
+# Soft nudge: try to raise plasmashell / desktop
+if command -v qdbus6 >/dev/null; then
+  qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.activateLauncherMenu >/dev/null 2>&1 || true
+fi
+exit 0

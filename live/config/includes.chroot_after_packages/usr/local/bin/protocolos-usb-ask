@@ -1,0 +1,74 @@
+#!/bin/bash
+# ProtocolOS: при новой флешке/USB — спросить «Разрешить?» (как OpenSnitch для сети).
+set -u
+MARKER_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/protocolos/usb-asked"
+mkdir -p "$MARKER_DIR"
+UG=$(command -v usbguard || true)
+[ -n "$UG" ] || exit 0
+# режим «открытый» из мастера первого запуска — авто-разрешать
+if [ -f "$HOME/.config/protocolos/usb-mode" ] && grep -qx open "$HOME/.config/protocolos/usb-mode" 2>/dev/null; then
+  while true; do
+    "$UG" list-devices 2>/dev/null | awk -F: '/: block /{print $1}' | while read -r id; do
+      [ -n "$id" ] && "$UG" allow-device "$id" >/dev/null 2>&1 || true
+    done
+    sleep 3
+  done
+fi
+
+notify() {
+  command -v notify-send >/dev/null || return 0
+  notify-send -a ProtocolOS -i drive-removable-media "$@"
+}
+
+ask() {
+  local title="$1" body="$2"
+  if command -v kdialog >/dev/null; then
+    kdialog --title "$title" --yesno "$body" --yes-label "Разрешить" --no-label "Запретить"
+    return $?
+  fi
+  if command -v zenity >/dev/null; then
+    zenity --question --title="$title" --text="$body" --ok-label="Разрешить" --cancel-label="Запретить"
+    return $?
+  fi
+  return 1
+}
+
+# hash → стабильный id устройства из строки правил usbguard
+device_key() {
+  echo "$1" | sed -n 's/.*hash "\([^"]*\)".*/\1/p' | head -c 64
+}
+
+process_blocked() {
+  local line id name key
+  # "N: block id .... name "Foo" hash "..." ..."
+  while IFS= read -r line; do
+    echo "$line" | grep -q ': block ' || continue
+    id=$(echo "$line" | sed -n 's/^\([0-9]*\):.*/\1/p')
+    name=$(echo "$line" | sed -n 's/.*name "\([^"]*\)".*/\1/p')
+    [ -z "$name" ] && name=$(echo "$line" | sed -n 's/.*id \([0-9a-fA-F:]*\).*/\1/p')
+    key=$(device_key "$line")
+    [ -z "$key" ] && key="id-$id"
+    [ -f "$MARKER_DIR/$key" ] && continue
+    touch "$MARKER_DIR/$key"
+    notify "Новое USB-устройство" "${name:-устройство} заблокировано"
+    if ask "USBGuard — ProtocolOS" "Разрешить доступ к устройству?\n\n${name}\n\n(как OpenSnitch спрашивает про сеть)"; then
+      "$UG" allow-device "$id" >/dev/null 2>&1 && notify "USB разрешён" "$name"
+    else
+      "$UG" block-device "$id" >/dev/null 2>&1 || true
+      notify "USB запрещён" "$name"
+    fi
+  done
+}
+
+# один проход (для таймера) или цикл
+once="${1:-}"
+if [ "$once" = once ]; then
+  "$UG" list-devices 2>/dev/null | process_blocked
+  exit 0
+fi
+
+# сессионный демон
+while true; do
+  "$UG" list-devices 2>/dev/null | process_blocked
+  sleep 2
+done
