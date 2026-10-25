@@ -7,20 +7,21 @@ DOC=$(xdg-user-dir DOCUMENTS); mkdir -p "$DOC/Проекты"
 mkdir -p "$(xdg-user-dir PICTURES)/Screenshots" "$(xdg-user-dir VIDEOS)/Screencasts" "$(xdg-user-dir DESKTOP)" 2>/dev/null || true
 # Системные конфиги Plasma (хоткеи, поиск, Dolphin) — только если ещё нет своих
 mkdir -p "$HOME/.config/protocolos"
-for f in kglobalshortcutsrc spectaclerc krunnerrc dolphinrc; do
+for f in kglobalshortcutsrc spectaclerc krunnerrc dolphinrc klipperrc; do
   if [ -f "/etc/xdg/$f" ] && [ ! -f "$HOME/.config/$f" ]; then
     cp "/etc/xdg/$f" "$HOME/.config/$f"
   fi
 done
-# Обновление хоткеев: столы + поиск + Meta+V очистка буфера
-if [ ! -f "$HOME/.config/protocolos/shortcuts-v3.done" ]; then
+# Meta+V = открыть историю буфера (не очистка)
+if [ ! -f "$HOME/.config/protocolos/shortcuts-v4.done" ]; then
   if [ -f /etc/xdg/kglobalshortcutsrc ]; then
-    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q 'protocolos-clipboard' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
+    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q 'show-on-mouse-pos=Meta+V' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
       cp /etc/xdg/kglobalshortcutsrc "$HOME/.config/kglobalshortcutsrc"
     fi
   fi
+  [ -f /etc/xdg/klipperrc ] && cp /etc/xdg/klipperrc "$HOME/.config/klipperrc"
   [ -f /etc/xdg/krunnerrc ] && cp /etc/xdg/krunnerrc "$HOME/.config/krunnerrc"
-  touch "$HOME/.config/protocolos/shortcuts-v3.done"
+  touch "$HOME/.config/protocolos/shortcuts-v4.done"
 fi
 # USBGuard IPC
 groups 2>/dev/null | grep -q plugdev || true

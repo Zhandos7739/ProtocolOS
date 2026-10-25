@@ -29,9 +29,16 @@ _launch=Meta+S\tMeta+Space\tAlt+Space\tMeta+R,none,Поиск приложени
 _k_friendly_name=Калькулятор
 _launch=none,none,Калькулятор
 
+# Meta+V = открыть историю буфера (как Win+V). Очистка — кнопка в меню Klipper.
+[org.kde.klipper]
+_k_friendly_name=Буфер обмена
+show-on-mouse-pos=Meta+V,Meta+V,Показать буфер у курсора
+clear-history=none,none,Очистить историю буфера
+
 [protocolos-clipboard.desktop]
-_k_friendly_name=Очистить буфер
-_launch=Meta+V,none,Очистить буфер обмена
+_k_friendly_name=Буфер обмена
+_launch=none,none,Открыть буфер обмена
+Clear=none,none,Очистить буфер (кнопка в меню)
 
 [kwin]
 _k_friendly_name=KWin

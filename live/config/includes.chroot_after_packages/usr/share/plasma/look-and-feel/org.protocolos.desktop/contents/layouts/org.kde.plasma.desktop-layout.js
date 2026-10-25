@@ -64,6 +64,8 @@ pager.currentConfigGroup = ["General"];
 pager.writeConfig("displayedText", "2"); // none — только превью
 pager.writeConfig("showWindowIcons", "true");
 pager.writeConfig("wrapPage", "true");
+// Буфер: Meta+V открывает историю; в меню есть кнопка очистки
+top.addWidget("org.kde.plasma.clipboard");
 var tray = top.addWidget("org.kde.plasma.systemtray");
 tray.currentConfigGroup = ["General"];
 tray.writeConfig("iconSpacing", 2);
