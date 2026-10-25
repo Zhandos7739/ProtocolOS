@@ -1,0 +1,16 @@
+[General]
+FreeFloating=true
+ActivateWhenTypingOnDesktop=true
+historyEnabled=true
+
+[Plugins]
+applicationsEnabled=true
+katesessionsEnabled=false
+placesEnabled=true
+recentdocumentsEnabled=true
+servicesEnabled=true
+shellEnabled=true
+unitconverterEnabled=true
+bookmarksEnabled=false
+browserhistoryEnabled=false
+browsertabsEnabled=false

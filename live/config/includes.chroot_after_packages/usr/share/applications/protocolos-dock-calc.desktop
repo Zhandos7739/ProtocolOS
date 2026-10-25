@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Калькулятор
+Exec=kcalc
+Icon=protocolos-calc
+StartupWMClass=kcalc
+NoDisplay=true
+Terminal=false

@@ -20,3 +20,26 @@ FullClipboard=none,none,Экран в буфер
 RegionClipboard=none,none,Область в буфер
 WindowClipboard=none,none,Окно в буфер
 SaveFile=none,none,Сохранить экран в файл
+
+[org.kde.krunner.desktop]
+_k_friendly_name=Поиск
+_launch=Meta+S\tMeta+Space\tAlt+Space\tMeta+R,none,Поиск приложений
+
+[org.kde.kcalc.desktop]
+_k_friendly_name=Калькулятор
+_launch=none,none,Калькулятор
+
+[kwin]
+_k_friendly_name=KWin
+Create Desktop=Meta+Ctrl+D,none,Создать рабочий стол
+Remove Current Desktop=Meta+Ctrl+F4,none,Удалить текущий рабочий стол
+Switch One Desktop to the Left=Meta+Ctrl+Left,Meta+Ctrl+Left,Рабочий стол влево
+Switch One Desktop to the Right=Meta+Ctrl+Right,Meta+Ctrl+Right,Рабочий стол вправо
+Switch One Desktop Up=Meta+Ctrl+Up,Meta+Ctrl+Up,Рабочий стол вверх
+Switch One Desktop Down=Meta+Ctrl+Down,Meta+Ctrl+Down,Рабочий стол вниз
+Overview=Meta+Tab\tMeta+W,none,Обзор рабочих столов
+Grid View=Meta+G,none,Сетка рабочих столов
+Show Desktop=Meta+D,none,Показать рабочий стол
+Window Operations Menu=Alt+F3,Alt+F3,Меню окна
+Walk Through Windows=Alt+Tab,Alt+Tab,Переключение окон
+Walk Through Windows (Reverse)=Alt+Shift+Tab,Alt+Shift+Tab,Переключение окон (обратно)

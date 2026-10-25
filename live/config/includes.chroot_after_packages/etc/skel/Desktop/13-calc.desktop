@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Калькулятор
+GenericName=Калькулятор
+Exec=kcalc
+Icon=accessories-calculator
+Terminal=false

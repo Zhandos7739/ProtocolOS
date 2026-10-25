@@ -13,6 +13,13 @@ fadeEnabled=true
 squashEnabled=false
 magiclampEnabled=false
 glideEnabled=false
+overviewEnabled=true
+desktopgridEnabled=true
+[Desktops]
+Number=2
+Rows=1
+Name_1=Стол 1
+Name_2=Стол 2
 [Effect-blur]
 BlurStrength=8
 NoiseStrength=0

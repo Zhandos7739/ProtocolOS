@@ -1,0 +1,23 @@
+[Desktop Entry]
+Type=Application
+Name=Файлы на рабочем столе
+Name[ru]=Файлы на рабочем столе
+Comment=Создать папку или файл
+Comment[ru]=Создать папку или файл
+Exec=/usr/local/bin/protocolos-files open-desktop
+Icon=protocolos-files
+Categories=Utility;FileManager;
+Actions=NewFolder;NewFile;Paste;
+StartupNotify=false
+
+[Desktop Action NewFolder]
+Name=Новая папка
+Exec=/usr/local/bin/protocolos-files new-folder desktop
+
+[Desktop Action NewFile]
+Name=Новый файл
+Exec=/usr/local/bin/protocolos-files new-file desktop
+
+[Desktop Action Paste]
+Name=Вставить
+Exec=/usr/local/bin/protocolos-files paste desktop

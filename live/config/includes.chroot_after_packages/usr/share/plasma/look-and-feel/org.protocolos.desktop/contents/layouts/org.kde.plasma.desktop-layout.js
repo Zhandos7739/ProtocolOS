@@ -47,11 +47,23 @@ var k = top.addWidget("org.kde.plasma.kickoff");
 k.currentConfigGroup = ["General"];
 k.writeConfig("icon", "protocolos-mark");
 k.writeConfig("menuLabel", "ProtocolOS");
+// Поиск приложений в Win-меню: печать сразу фильтрует список
+k.writeConfig("alphaSort", "true");
+k.writeConfig("compactMode", "false");
+k.writeConfig("showButtonsOnFavorites", "true");
+k.writeConfig("favoritesDisplay", "0");
+k.writeConfig("applicationsDisplay", "0");
 k.globalShortcut = "Alt+F1";
 top.addWidget("org.kde.plasma.appmenu");
 top.addWidget("org.kde.plasma.panelspacer");
 top.addWidget("org.protocolos.shield");
 top.addWidget("org.protocolos.audio");   // mic + headphones mute
+// Переключатель виртуальных столов (как на Windows / Mac)
+var pager = top.addWidget("org.kde.plasma.pager");
+pager.currentConfigGroup = ["General"];
+pager.writeConfig("displayedText", "2"); // none — только превью
+pager.writeConfig("showWindowIcons", "true");
+pager.writeConfig("wrapPage", "true");
 var tray = top.addWidget("org.kde.plasma.systemtray");
 tray.currentConfigGroup = ["General"];
 tray.writeConfig("iconSpacing", 2);

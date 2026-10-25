@@ -22,6 +22,7 @@ PlasmoidItem {
         ["firefox", "Firefox", "Браузер", "firefox-esr"],
         ["terminal", "Терминал", "Система", "konsole"],
         ["files", "Файлы", "Менеджер", "dolphin"],
+        ["calc", "Калькулятор", "Счёт", "kcalc"],
         ["settings", "Настройки", "Система", "systemsettings"],
         ["discord", "Discord", "Мессенджер", "flatpak run com.discordapp.Discord || plasma-discover --search discord"],
         ["store", "Магазин", "Приложения", "plasma-discover"],
@@ -31,6 +32,8 @@ PlasmoidItem {
         ["blackout", "Blackout", "Отключить сеть", "konsole --hold -e /usr/local/bin/protocolos-blackout toggle"],
         ["network", "Сетевой монитор", "OpenSnitch", "opensnitch-ui"]
     ]
+    // путь папки для файловых операций (Ctrl+C/X/V, новая папка/файл)
+    property string fileTarget: "desktop"
     // first entry is the "Проекты" shortcut, shown in its own column like in the mockup
     readonly property var dirs: [
         ["projects", "Проекты", "d=$(xdg-user-dir DOCUMENTS)/Проекты; mkdir -p \"$d\"; xdg-open \"$d\"", "$(xdg-user-dir DOCUMENTS)/Проекты"],
@@ -130,7 +133,7 @@ PlasmoidItem {
         onNewData: (src, data) => disconnectSource(src)
     }
     function resetLayout() {
-        cfg.appOrder = ["firefox","terminal","files","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
+        cfg.appOrder = ["firefox","terminal","files","calc","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
         cfg.dirOrder = ["projects","docs","down","pics","system","trash"]
         cfg.hiddenItems = ["app:record","app:kdenlive","app:blackout","app:network"]
         cfg.showCard = true
@@ -142,6 +145,17 @@ PlasmoidItem {
     }
     function pinToDock(id) { launch("/usr/local/bin/protocolos-pin " + id) }
     function openTerminalIn(path) { launch("d=\"" + path + "\"; mkdir -p \"$d\"; konsole --workdir \"$d\"") }
+    function filesOp(op, path) {
+        var t = path && path !== "" ? path : root.fileTarget
+        launch("/usr/local/bin/protocolos-files " + op + " \"" + String(t).replace(/"/g, "") + "\"")
+    }
+    function dirKey(id) {
+        if (id === "projects") return "projects"
+        if (id === "docs") return "docs"
+        if (id === "down") return "down"
+        if (id === "pics") return "pics"
+        return "desktop"
+    }
     // typing on the desktop hands the text to KRunner
     function krunner(text) {
         launch("dbus-send --session --type=method_call --dest=org.kde.krunner /App org.kde.krunner.App.query string:\"" + text.replace(/["\\$`]/g, "") + "\"")
@@ -161,6 +175,14 @@ PlasmoidItem {
         focus: true
         Keys.onPressed: (e) => {
             var na = root.appList.length, nd = root.dirList.length, c = area.grid.c, k = root.kbd
+            // Ctrl+C/V/X и создание папок/файлов — когда фокус на столе ProtocolOS
+            if (e.modifiers & Qt.ControlModifier) {
+                if (e.key === Qt.Key_V) { root.filesOp("paste", root.fileTarget); e.accepted = true; return }
+                if (e.key === Qt.Key_C) { root.filesOp("copy-target", root.fileTarget); e.accepted = true; return }
+                if (e.key === Qt.Key_X) { root.filesOp("cut-target", root.fileTarget); e.accepted = true; return }
+                if ((e.modifiers & Qt.ShiftModifier) && e.key === Qt.Key_N) { root.filesOp("new-folder", root.fileTarget); e.accepted = true; return }
+                if ((e.modifiers & Qt.AltModifier) && e.key === Qt.Key_N) { root.filesOp("new-file", root.fileTarget); e.accepted = true; return }
+            }
             if (e.key === Qt.Key_Escape) { if (root.editing) root.editing = false; root.kbd = -1; e.accepted = true; return }
             if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter || e.key === Qt.Key_Space) { if (!root.editing) root.activate(k); e.accepted = true; return }
             var mv = { [Qt.Key_Left]: 1, [Qt.Key_Right]: 1, [Qt.Key_Up]: 1, [Qt.Key_Down]: 1 }
@@ -178,6 +200,7 @@ PlasmoidItem {
                     else if (e.key === Qt.Key_Down) j = Math.min(nd - 1, j + 1)
                     else if (e.key === Qt.Key_Left && na) { k = Math.min(na - 1, j * c + c - 1); root.kbd = k; return }
                     k = na + j
+                    if (k >= na && k - na < nd) root.fileTarget = root.dirKey(root.dirList[k - na][0])
                 }
                 root.kbd = k; return
             }
@@ -229,6 +252,23 @@ PlasmoidItem {
             id: stage
             x: -area.gp.x; y: -area.gp.y
             width: area.sw; height: area.sh
+
+            // ПКМ по пустому месту — создать папку/файл (как на рабочем столе Windows)
+            MouseArea {
+                anchors.fill: parent
+                acceptedButtons: Qt.RightButton
+                z: 0
+                onClicked: (m) => { if (m.button === Qt.RightButton) deskMenu.popup() }
+            }
+            QQC2.Menu {
+                id: deskMenu
+                QQC2.MenuItem { text: "Новая папка"; onTriggered: root.filesOp("new-folder", "desktop") }
+                QQC2.MenuItem { text: "Новый файл"; onTriggered: root.filesOp("new-file", "desktop") }
+                QQC2.MenuItem { text: "Вставить"; onTriggered: root.filesOp("paste", "desktop") }
+                QQC2.MenuItem { text: "Открыть рабочий стол"; onTriggered: root.launch("/usr/local/bin/protocolos-files open-desktop") }
+                QQC2.MenuItem { text: "Поиск приложений…"; onTriggered: root.launch("dbus-send --session --type=method_call --dest=org.kde.krunner /App org.kde.krunner.App.display") }
+                QQC2.MenuItem { text: root.editing ? "Завершить настройку" : "Настроить рабочий стол"; onTriggered: root.editing = !root.editing }
+            }
 
             // One shared wallpaper blur for every Glass tile/card/bar on this desktop.
             WallBlur {
@@ -469,7 +509,12 @@ PlasmoidItem {
                         cursorShape: root.editing ? Qt.OpenHandCursor : Qt.PointingHandCursor
                         pressAndHoldInterval: 600
                         property point p0
-                        onPressed: (m) => { p0 = mapToItem(stage, m.x, m.y); area.forceActiveFocus(); root.kbd = root.appList.length + index }
+                        onPressed: (m) => {
+                            p0 = mapToItem(stage, m.x, m.y); area.forceActiveFocus()
+                            root.kbd = root.appList.length + index
+                            if (modelData[0] !== "trash" && modelData[0] !== "system")
+                                root.fileTarget = root.dirKey(modelData[0])
+                        }
                         onPressAndHold: (m) => { if (m.button === Qt.LeftButton) root.editing = true }
                         onPositionChanged: (m) => {
                             if (!root.editing || !pressed) return
@@ -492,6 +537,14 @@ PlasmoidItem {
                     QQC2.Menu {
                         id: foldMenu
                         QQC2.MenuItem { text: "Открыть"; onTriggered: root.launch(modelData[2]) }
+                        QQC2.MenuItem { text: "Новая папка здесь"; visible: modelData[0] !== "trash" && modelData[0] !== "system"; height: visible ? implicitHeight : 0
+                            onTriggered: { root.fileTarget = root.dirKey(modelData[0]); root.filesOp("new-folder", root.fileTarget) } }
+                        QQC2.MenuItem { text: "Новый файл здесь"; visible: modelData[0] !== "trash" && modelData[0] !== "system"; height: visible ? implicitHeight : 0
+                            onTriggered: { root.fileTarget = root.dirKey(modelData[0]); root.filesOp("new-file", root.fileTarget) } }
+                        QQC2.MenuItem { text: "Вставить сюда"; visible: modelData[0] !== "trash" && modelData[0] !== "system"; height: visible ? implicitHeight : 0
+                            onTriggered: { root.fileTarget = root.dirKey(modelData[0]); root.filesOp("paste", root.fileTarget) } }
+                        QQC2.MenuItem { text: "Копировать папку"; visible: modelData[0] !== "trash" && modelData[0] !== "system"; height: visible ? implicitHeight : 0
+                            onTriggered: root.filesOp("copy-target", root.dirKey(modelData[0])) }
                         QQC2.MenuItem { text: "Открыть в терминале"; visible: modelData[3] !== ""; height: visible ? implicitHeight : 0
                             onTriggered: root.openTerminalIn(modelData[3]) }
                         QQC2.MenuItem { text: "Скрыть с рабочего стола"; onTriggered: root.setHidden("dir:" + modelData[0], true) }
