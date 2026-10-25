@@ -45,6 +45,12 @@ kdialog
 kooha
 obs-studio
 kdenlive
+# --- games (Steam Flatpak + Proton внутри Steam; GameMode на хосте) ---
+gamemode
+libgamemode0
+libgamemodeauto0
+steam-devices
+psmisc
 # --- security ---
 clamav
 clamav-daemon
@@ -52,6 +58,7 @@ clamav-freshclam
 clamtk
 opensnitch
 python3-opensnitch-ui
+usbguard
 ufw
 nftables
 apparmor
@@ -60,6 +67,8 @@ apparmor-profiles-extra
 apparmor-utils
 polkitd
 pkexec
+# DNS-over-TLS
+systemd-resolved
 # --- performance ---
 systemd-zram-generator
 earlyoom
@@ -69,6 +78,8 @@ inotify-tools
 user-setup
 libnotify-bin
 qdbus-qt6
+wl-clipboard
+xclip
 # --- installed system boot (UEFI + Secure Boot + dual boot) ---
 grub-efi-amd64-bin
 grub-efi-amd64-signed

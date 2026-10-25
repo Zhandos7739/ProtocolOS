@@ -12,16 +12,18 @@ for f in kglobalshortcutsrc spectaclerc krunnerrc dolphinrc; do
     cp "/etc/xdg/$f" "$HOME/.config/$f"
   fi
 done
-# Обновление хоткеев: вирт. столы + поиск (если старый профиль без Create Desktop)
-if [ ! -f "$HOME/.config/protocolos/shortcuts-v2.done" ]; then
+# Обновление хоткеев: столы + поиск + Meta+V очистка буфера
+if [ ! -f "$HOME/.config/protocolos/shortcuts-v3.done" ]; then
   if [ -f /etc/xdg/kglobalshortcutsrc ]; then
-    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q '^Create Desktop=' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
+    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q 'protocolos-clipboard' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
       cp /etc/xdg/kglobalshortcutsrc "$HOME/.config/kglobalshortcutsrc"
     fi
   fi
   [ -f /etc/xdg/krunnerrc ] && cp /etc/xdg/krunnerrc "$HOME/.config/krunnerrc"
-  touch "$HOME/.config/protocolos/shortcuts-v2.done"
+  touch "$HOME/.config/protocolos/shortcuts-v3.done"
 fi
+# USBGuard IPC
+groups 2>/dev/null | grep -q plugdev || true
 # kwin: 2 рабочих стола по умолчанию
 if [ ! -f "$HOME/.config/protocolos/desktops-v1.done" ]; then
   mkdir -p "$HOME/.config"

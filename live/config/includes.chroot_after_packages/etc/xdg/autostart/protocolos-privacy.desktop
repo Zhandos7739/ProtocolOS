@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS privacy watch
+Comment=Запрос доступа к микрофону и камере
+Exec=/usr/local/bin/protocolos-privacy watch
+Icon=audio-input-microphone
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=2

@@ -1,5 +1,5 @@
 [Unit]
-Description=ProtocolOS first boot setup (ufw, AppArmor, ClamAV sigs, Discord flatpak)
+Description=ProtocolOS first boot (ufw, AppArmor, USBGuard, Steam/Discord, ClamAV)
 Wants=network-online.target
 After=network-online.target
 ConditionPathExists=!/var/lib/protocolos/firstboot.done

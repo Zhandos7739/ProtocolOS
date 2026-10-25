@@ -29,6 +29,10 @@ _launch=Meta+S\tMeta+Space\tAlt+Space\tMeta+R,none,Поиск приложени
 _k_friendly_name=Калькулятор
 _launch=none,none,Калькулятор
 
+[protocolos-clipboard.desktop]
+_k_friendly_name=Очистить буфер
+_launch=Meta+V,none,Очистить буфер обмена
+
 [kwin]
 _k_friendly_name=KWin
 Create Desktop=Meta+Ctrl+D,none,Создать рабочий стол

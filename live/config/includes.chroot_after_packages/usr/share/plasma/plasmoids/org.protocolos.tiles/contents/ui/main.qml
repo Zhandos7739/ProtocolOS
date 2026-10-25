@@ -23,6 +23,7 @@ PlasmoidItem {
         ["terminal", "Терминал", "Система", "konsole"],
         ["files", "Файлы", "Менеджер", "dolphin"],
         ["calc", "Калькулятор", "Счёт", "kcalc"],
+        ["steam", "Steam", "Proton · GameMode", "/usr/local/bin/protocolos-steam"],
         ["settings", "Настройки", "Система", "systemsettings"],
         ["discord", "Discord", "Мессенджер", "flatpak run com.discordapp.Discord || plasma-discover --search discord"],
         ["store", "Магазин", "Приложения", "plasma-discover"],
@@ -133,7 +134,7 @@ PlasmoidItem {
         onNewData: (src, data) => disconnectSource(src)
     }
     function resetLayout() {
-        cfg.appOrder = ["firefox","terminal","files","calc","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
+        cfg.appOrder = ["firefox","terminal","files","calc","steam","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
         cfg.dirOrder = ["projects","docs","down","pics","system","trash"]
         cfg.hiddenItems = ["app:record","app:kdenlive","app:blackout","app:network"]
         cfg.showCard = true

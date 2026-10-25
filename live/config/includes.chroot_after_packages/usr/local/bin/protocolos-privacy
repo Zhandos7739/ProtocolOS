@@ -1,0 +1,111 @@
+#!/bin/bash
+# Индикатор и запрос: микрофон / камера. Приложение не должно включать их «молча».
+set -u
+ASKED="${XDG_CACHE_HOME:-$HOME/.cache}/protocolos/privacy-asked"
+mkdir -p "$ASKED"
+
+notify() {
+  command -v notify-send >/dev/null || return 0
+  notify-send -a ProtocolOS -i "$1" "$2" "$3"
+}
+
+ask() {
+  local title="$1" body="$2"
+  if command -v kdialog >/dev/null; then
+    kdialog --title "$title" --yesno "$body" --yes-label "Разрешить" --no-label "Запретить"
+    return $?
+  fi
+  return 1
+}
+
+mic_clients() {
+  python3 - <<'PY' 2>/dev/null || true
+import json, subprocess, sys
+try:
+    out = subprocess.check_output(["pw-dump"], stderr=subprocess.DEVNULL)
+    data = json.loads(out)
+except Exception:
+    sys.exit(0)
+skip = {"pulseaudio","pipewire","wireplumber","pavucontrol","plasma-pa","protocolos-audio"}
+names = set()
+for o in data:
+    if o.get("type") != "PipeWire:Interface:Node":
+        continue
+    props = (o.get("info") or {}).get("props") or {}
+    media = props.get("media.class", "")
+    if not media.startswith("Stream/Input/Audio"):
+        continue
+    app = (props.get("application.name")
+           or props.get("application.process.binary")
+           or props.get("node.name")
+           or "unknown")
+    if app.lower() in skip:
+        continue
+    names.add(app)
+print("\n".join(sorted(names)))
+PY
+}
+
+cam_users() {
+  local v fuser_out pid
+  for v in /dev/video*; do
+    [ -e "$v" ] || continue
+    fuser_out=$(fuser "$v" 2>/dev/null || true)
+    for pid in $fuser_out; do
+      pid=${pid//[^0-9]/}
+      [ -z "$pid" ] && continue
+      tr '\0' ' ' <"/proc/$pid/cmdline" 2>/dev/null | awk '{print $1}' | xargs -r basename 2>/dev/null
+    done
+  done | sort -u | grep -vE '^(pipewire|wireplumber|v4l2loopback)$' || true
+}
+
+mute_mic() { /usr/local/bin/protocolos-audio source mute >/dev/null 2>&1 || true; }
+
+status() {
+  local mic=0 cam=0 mc cc
+  mc=$(mic_clients | paste -sd, -)
+  cc=$(cam_users | paste -sd, -)
+  [ -n "$mc" ] && mic=1
+  [ -n "$cc" ] && cam=1
+  echo "mic_use=$mic"
+  echo "cam_use=$cam"
+  echo "mic_apps=${mc:-}"
+  echo "cam_apps=${cc:-}"
+  /usr/local/bin/protocolos-audio status 2>/dev/null || true
+}
+
+watch_once() {
+  local app key
+  while IFS= read -r app; do
+    [ -z "$app" ] && continue
+    key=$(printf '%s' "mic:$app" | tr '/ ' '__')
+    [ -f "$ASKED/$key" ] && continue
+    touch "$ASKED/$key"
+    notify audio-input-microphone "Микрофон" "«$app» хочет доступ к микрофону"
+    if ask "Микрофон — ProtocolOS" "Разрешить «$app» использовать микрофон?\n\nИначе запись будет выключена."; then
+      :
+    else
+      mute_mic
+      notify audio-input-microphone "Микрофон запрещён" "$app"
+    fi
+  done < <(mic_clients)
+
+  while IFS= read -r app; do
+    [ -z "$app" ] && continue
+    key=$(printf '%s' "cam:$app" | tr '/ ' '__')
+    [ -f "$ASKED/$key" ] && continue
+    touch "$ASKED/$key"
+    notify camera-web "Камера" "«$app» использует камеру"
+    if ! ask "Камера — ProtocolOS" "Разрешить «$app» использовать камеру?"; then
+      notify camera-web "Камера" "Закройте «$app», если доступ не нужен"
+    fi
+  done < <(cam_users)
+}
+
+case "${1:-status}" in
+  status) status ;;
+  watch) while true; do watch_once; sleep 2; done ;;
+  once) watch_once ;;
+  mute-mic) mute_mic ;;
+  *) echo "usage: $0 status|watch|once|mute-mic"; exit 2 ;;
+esac

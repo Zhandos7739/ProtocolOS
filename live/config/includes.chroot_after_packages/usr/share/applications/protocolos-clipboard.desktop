@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Очистить буфер обмена
+Name[ru]=Очистить буфер обмена
+Comment=Meta+V — очистить буфер (как Win+V в ProtocolOS)
+Exec=/usr/local/bin/protocolos-clipboard
+Icon=edit-clear
+Categories=Utility;
+StartupNotify=false
+Actions=Clear;
+
+[Desktop Action Clear]
+Name=Очистить
+Exec=/usr/local/bin/protocolos-clipboard
