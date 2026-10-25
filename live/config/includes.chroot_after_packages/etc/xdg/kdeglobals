@@ -8,3 +8,6 @@ Theme=Papirus-Dark
 LookAndFeelPackage=org.protocolos.desktop
 AnimationDurationFactor=0.7
 SingleClick=false
+
+[Sounds]
+Theme=protocolos

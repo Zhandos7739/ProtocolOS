@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS startup sound
+Exec=/usr/local/bin/protocolos-sound startup
+NoDisplay=true
+X-KDE-autostart-phase=2
+OnlyShowIn=KDE;

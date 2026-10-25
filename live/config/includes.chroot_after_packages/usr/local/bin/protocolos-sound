@@ -1,0 +1,15 @@
+#!/bin/sh
+# protocolos-sound startup|shutdown|alert|accept|deny
+D=/usr/share/sounds/protocolos/stereo
+case "$1" in
+  startup)  f=$D/desktop-login.ogg ;;
+  shutdown) f=$D/desktop-logout.ogg ;;
+  alert)    f=$D/dialog-warning.ogg ;;
+  accept)   f=$D/complete.ogg ;;
+  deny)     f=$D/dialog-error.ogg ;;
+  *) echo "usage: protocolos-sound startup|shutdown|alert|accept|deny"; exit 1 ;;
+esac
+[ -f "$f" ] || exit 0
+command -v pw-play >/dev/null 2>&1 && exec pw-play "$f"
+command -v paplay  >/dev/null 2>&1 && exec paplay "$f"
+exit 0

@@ -1,0 +1,8 @@
+[Sound Theme]
+Name=ProtocolOS
+Comment=ProtocolOS system sounds
+Inherits=freedesktop
+Directories=stereo
+
+[stereo]
+OutputProfile=stereo
