@@ -15,7 +15,7 @@ fi
 # SDDM: ночной бренд-фон (логин). Стол/блокировка меняются местами через wallsync (тёмная тема).
 T=/usr/share/sddm/themes/breeze; [ -d $T ] && printf '[General]\nbackground=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg\ntype=image\n' > $T/theme.conf.user
 # Исполняемые хелперы темы/обоев
-chmod +x /usr/local/bin/protocolos-wallsync /usr/local/bin/protocolos-wall-resolve /usr/local/bin/protocolos-theme /usr/local/bin/protocolos-sound 2>/dev/null || true
+chmod +x /usr/local/bin/protocolos-wallsync /usr/local/bin/protocolos-wall-resolve /usr/local/bin/protocolos-theme /usr/local/bin/protocolos-sound /usr/local/bin/protocolos-audio /usr/local/bin/protocolos-desktop-settings 2>/dev/null || true
 # ufw: deny incoming
 sed -i 's/^DEFAULT_INPUT_POLICY=.*/DEFAULT_INPUT_POLICY="DROP"/; s/^DEFAULT_OUTPUT_POLICY=.*/DEFAULT_OUTPUT_POLICY="ACCEPT"/' /etc/default/ufw 2>/dev/null
 sed -i 's/^ENABLED=.*/ENABLED=yes/' /etc/ufw/ufw.conf 2>/dev/null

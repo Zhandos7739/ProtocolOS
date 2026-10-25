@@ -1,0 +1,83 @@
+#!/bin/bash
+# ProtocolOS audio: mute/unmute speakers (sink) and microphone (source).
+# Usage: protocolos-audio sink|source|status [toggle|mute|unmute|status]
+set -u
+WP=$(command -v wpctl || true)
+PA=$(command -v pactl || true)
+
+target_id() {
+  case "$1" in
+    sink|speaker|headphone|headphones|out) echo "@DEFAULT_AUDIO_SINK@" ;;
+    source|mic|microphone|in) echo "@DEFAULT_AUDIO_SOURCE@" ;;
+    *) return 1 ;;
+  esac
+}
+
+is_muted_wp() {
+  # "Volume: 0.50 [MUTED]" or without MUTED
+  "$WP" get-volume "$1" 2>/dev/null | grep -q MUTED
+}
+
+status_one() {
+  local kind=$1 id muted=0
+  id=$(target_id "$kind") || { echo "${kind}=err"; return; }
+  if [ -n "$WP" ]; then
+    is_muted_wp "$id" && muted=1
+  elif [ -n "$PA" ]; then
+    case "$kind" in
+      sink|speaker|headphone|headphones|out)
+        "$PA" get-sink-mute @DEFAULT_SINK@ 2>/dev/null | grep -q yes && muted=1 ;;
+      *)
+        "$PA" get-source-mute @DEFAULT_SOURCE@ 2>/dev/null | grep -q yes && muted=1 ;;
+    esac
+  fi
+  echo "${kind}=${muted}"
+}
+
+do_set() {
+  local kind=$1 op=$2 id
+  id=$(target_id "$kind") || { echo "usage: $0 sink|source [toggle|mute|unmute|status]"; exit 2; }
+  case "$op" in
+    status) status_one "$kind"; return ;;
+    toggle|mute|unmute) ;;
+    *) echo "usage: $0 sink|source [toggle|mute|unmute|status]"; exit 2 ;;
+  esac
+  if [ -n "$WP" ]; then
+    case "$op" in
+      toggle) "$WP" set-mute "$id" toggle ;;
+      mute)   "$WP" set-mute "$id" 1 ;;
+      unmute) "$WP" set-mute "$id" 0 ;;
+    esac
+  elif [ -n "$PA" ]; then
+    local pa_tgt pa_cmd
+    case "$kind" in
+      sink|speaker|headphone|headphones|out) pa_tgt=@DEFAULT_SINK@; pa_cmd=set-sink-mute ;;
+      *) pa_tgt=@DEFAULT_SOURCE@; pa_cmd=set-source-mute ;;
+    esac
+    case "$op" in
+      toggle) "$PA" "$pa_cmd" "$pa_tgt" toggle ;;
+      mute)   "$PA" "$pa_cmd" "$pa_tgt" 1 ;;
+      unmute) "$PA" "$pa_cmd" "$pa_tgt" 0 ;;
+    esac
+  else
+    echo "no wpctl/pactl"; exit 1
+  fi
+  status_one "$kind"
+}
+
+case "${1:-status}" in
+  status)
+    status_one sink
+    status_one source
+    ;;
+  sink|speaker|headphone|headphones|out)
+    do_set sink "${2:-toggle}"
+    ;;
+  source|mic|microphone|in)
+    do_set source "${2:-toggle}"
+    ;;
+  *)
+    echo "usage: $0 status|sink|source [toggle|mute|unmute|status]"
+    exit 2
+    ;;
+esac

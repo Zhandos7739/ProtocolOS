@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Расположение рабочего стола
+Name[ru]=Расположение рабочего стола
+Comment=Плитки, папки, отступы и анимации открытия
+Comment[ru]=Плитки, папки, отступы и анимации открытия
+Exec=/usr/local/bin/protocolos-desktop-settings
+Icon=preferences-desktop-display
+Categories=Settings;DesktopSettings;
+Keywords=layout;desktop;protocolos;расположение;
+StartupNotify=false

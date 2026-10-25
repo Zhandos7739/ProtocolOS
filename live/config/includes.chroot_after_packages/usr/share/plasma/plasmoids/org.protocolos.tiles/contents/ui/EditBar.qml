@@ -12,6 +12,7 @@ Item {
     property var hiddenList: []
     signal restore(string key)
     signal done()
+    signal openLayout()
     property bool animIcons: true
     signal toggleAnim()
     signal reset()
@@ -70,6 +71,16 @@ Item {
                         Behavior on x { NumberAnimation { duration: 140 } } } }
             }
             MouseArea { id: am; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: bar.toggleAnim() }
+        }
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            height: 34 * bar.s; width: ly.width + 24 * bar.s; radius: height / 2
+            color: lm.containsMouse ? Qt.rgba(1, 1, 1, 0.32) : Qt.rgba(1, 1, 1, 0.18)
+            border.color: Qt.rgba(1, 1, 1, 0.45)
+            Text { id: ly; anchors.centerIn: parent; text: "Расположение"; color: "white"
+                font.family: "Inter"; font.pixelSize: Math.max(10, 13 * bar.s) }
+            MouseArea { id: lm; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                onClicked: bar.openLayout() }
         }
         // "Сбросить расположение": second click within 4 s confirms
         Rectangle {

@@ -44,15 +44,34 @@ PlasmoidItem {
     // ---------- customization (edit mode) ----------
     readonly property var cfg: Plasmoid.configuration
     property bool editing: false
+    property bool showLayoutSettings: false
     //PLASMA-ONLY-BEGIN
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
             text: root.editing ? "Завершить настройку" : "Настроить рабочий стол"
             icon.name: "protocolos-edit"
             onTriggered: root.editing = !root.editing
+        },
+        PlasmaCore.Action {
+            text: "Расположение…"
+            icon.name: "preferences-desktop-display"
+            onTriggered: root.showLayoutSettings = true
         }
     ]
     //PLASMA-ONLY-END
+    // Settings launcher drops a flag file — pick it up without a busy poll.
+    readonly property string layoutFlagCmd: "f=\"$HOME/.config/protocolos/open-layout-settings\"; if [ -f \"$f\" ]; then rm -f \"$f\"; echo open; fi #layout"
+    P5Support.DataSource {
+        id: layoutFlag; engine: "executable"
+        connectedSources: [root.layoutFlagCmd]
+        interval: 2500
+        onNewData: (src, data) => {
+            if ((data["stdout"] || "").indexOf("open") >= 0) {
+                root.showLayoutSettings = true
+                root.editing = true
+            }
+        }
+    }
     function ordered(list, order) {
         var out = [], seen = {}
         for (var i = 0; i < (order ? order.length : 0); i++)
@@ -115,6 +134,11 @@ PlasmoidItem {
         cfg.dirOrder = ["projects","docs","down","pics","system","trash"]
         cfg.hiddenItems = ["app:record","app:kdenlive","app:blackout","app:network"]
         cfg.showCard = true
+        cfg.columns = 4
+        cfg.folderSide = "right"
+        cfg.marginLeft = 80
+        cfg.marginTop = 110
+        cfg.appleOpen = true
     }
     function pinToDock(id) { launch("/usr/local/bin/protocolos-pin " + id) }
     function openTerminalIn(path) { launch("d=\"" + path + "\"; mkdir -p \"$d\"; konsole --workdir \"$d\"") }
@@ -175,30 +199,29 @@ PlasmoidItem {
         Component.onCompleted: Qt.callLater(sync)
         Timer { interval: 5000; running: true; repeat: true; onTriggered: area.sync() }
 
-        // ---------- geometry locked to HTML mockup at 1920×1080 ----------
-        // tile 150×170, step 180×200 from (80,110); label y=520; card 820×270 at (80,580);
-        // folders: Проекты (1590,100), others x=1740 step 150; dock clearance ~104.
+        // ---------- geometry (HTML mockup base @1920×1080, adjustable in settings) ----------
         readonly property real sw: area.Window.width > 0 ? area.Window.width : Screen.width
         readonly property real sh: area.Window.height > 0 ? area.Window.height : Screen.height
-        readonly property int cols: 4
+        readonly property int cols: Math.max(3, Math.min(6, root.cfg.columns || 4))
         readonly property int rows: Math.max(1, Math.ceil(root.appList.length / cols))
-        readonly property real refNeed: 110 + rows * 200 + 40 + 270 + 120
+        readonly property real refNeed: (root.cfg.marginTop || 110) + rows * 200 + 40 + 270 + 120
         readonly property real s: Math.max(0.45, Math.min(1.0, sw / 1920, sh / 1080, sh / refNeed))
-        readonly property real leftX: Math.round(80 * s)
-        readonly property real topY: Math.round(110 * s)
+        readonly property bool foldersLeft: root.cfg.folderSide === "left"
+        readonly property real leftX: Math.round((root.cfg.marginLeft || 80) * s) + (foldersLeft ? Math.round(280 * s) : 0)
+        readonly property real topY: Math.round((root.cfg.marginTop || 110) * s)
         readonly property real cell: Math.round(150 * s)
-        readonly property real gap: Math.round(30 * s)          // 180-150
-        readonly property real rowGap: Math.round(30 * s)       // 200-170
+        readonly property real gap: Math.round(30 * s)
+        readonly property real rowGap: Math.round(30 * s)
         readonly property var grid: ({ c: cols, cell: cell })
         readonly property real tilesEnd: topY + rows * (Math.round(170 * s) + rowGap) - rowGap
-        readonly property real labelY: Math.round(520 * s)
+        readonly property real labelY: tilesEnd + Math.round(20 * s)
         readonly property real labelH: Math.round(28 * s)
         readonly property real cardW: Math.round(820 * s)
         readonly property real cardH: Math.round(270 * s)
-        readonly property real cardY: Math.max(labelY + labelH + Math.round(12 * s), Math.round(580 * s))
+        readonly property real cardY: labelY + labelH + Math.round(12 * s)
         readonly property real foldW: Math.round(130 * s)
-        readonly property real foldX: Math.round(1740 * s)       // main folder column
-        readonly property real foldProjX: Math.round(1590 * s)  // Проекты offset like mockup
+        readonly property real foldX: foldersLeft ? Math.round(80 * s) : Math.round(1740 * s)
+        readonly property real foldProjX: foldersLeft ? Math.round(230 * s) : Math.round(1590 * s)
         readonly property real foldTop: Math.round(100 * s)
         readonly property real foldStep: Math.round(150 * s)
 
@@ -224,17 +247,38 @@ PlasmoidItem {
                     readonly property int row: Math.floor(index / area.grid.c)
                     property real dx: 0
                     property real dy: 0
+                    property real launchScale: 1
+                    property real launchOpacity: 1
                     readonly property bool dragging: ma.drag.active || dx !== 0 || dy !== 0
-                    z: dragging ? 10 : 0
+                    z: dragging || launchScale > 1.01 ? 20 : 0
                     x: area.leftX + col * (area.cell + area.gap) + dx
                     y: area.topY + row * (Math.round(170 * area.s) + area.rowGap) + dy
                     Behavior on x { enabled: !tile.dragging; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     Behavior on y { enabled: !tile.dragging; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     Wiggle { target: tile; running: root.editing && !tile.dragging; phase: index }
                     width: area.cell; height: Math.round(170 * area.s)
-                    scale: ma.pressed ? 0.95 : 1
-                    Behavior on scale { NumberAnimation { duration: 100 } }
+                    scale: (ma.pressed && launchScale === 1 ? 0.95 : 1) * launchScale
+                    opacity: launchOpacity
+                    Behavior on scale { enabled: launchScale === 1; NumberAnimation { duration: 100 } }
                     readonly property real k: area.cell / 150
+                    // Apple-like open: zoom + fade the tile, then start the app (KWin scale finishes the window).
+                    SequentialAnimation {
+                        id: appleOpen
+                        property string cmd: ""
+                        ParallelAnimation {
+                            NumberAnimation { target: tile; property: "launchScale"; from: 1; to: 1.45; duration: 260; easing.type: Easing.OutCubic }
+                            NumberAnimation { target: tile; property: "launchOpacity"; from: 1; to: 0.05; duration: 260; easing.type: Easing.InQuad }
+                        }
+                        ScriptAction { script: { root.launch(appleOpen.cmd); tile.launchScale = 1; tile.launchOpacity = 1 } }
+                    }
+                    function openApp() {
+                        aicon.kick()
+                        if (root.cfg.appleOpen && root.cfg.animIcons && Kirigami.Units.longDuration > 0) {
+                            appleOpen.cmd = modelData[3]; appleOpen.restart()
+                        } else {
+                            root.launch(modelData[3])
+                        }
+                    }
 
                     Glass {
                         anchors.fill: parent; radius: 28 * tile.k
@@ -321,14 +365,15 @@ PlasmoidItem {
                         }
                         onClicked: (m) => {
                             if (m.button === Qt.RightButton) { tileMenu.popup(); return }
-                            if (!root.editing) { aicon.kick(); root.launch(modelData[3]) }
+                            if (!root.editing) tile.openApp()
                         }
                     }
                     QQC2.Menu {
                         id: tileMenu
-                        QQC2.MenuItem { text: "Открыть"; onTriggered: { aicon.kick(); root.launch(modelData[3]) } }
+                        QQC2.MenuItem { text: "Открыть"; onTriggered: tile.openApp() }
                         QQC2.MenuItem { text: "Закрепить в доке"; onTriggered: root.pinToDock(modelData[0]) }
                         QQC2.MenuItem { text: "Скрыть с рабочего стола"; onTriggered: root.setHidden("app:" + modelData[0], true) }
+                        QQC2.MenuItem { text: "Расположение…"; onTriggered: root.showLayoutSettings = true }
                         QQC2.MenuItem { text: root.editing ? "Завершить настройку" : "Настроить рабочий стол"; onTriggered: root.editing = !root.editing }
                     }
                 }
@@ -457,20 +502,33 @@ PlasmoidItem {
 
             // ---------- edit mode bar: hidden items + "Готово" ----------
             EditBar {
-                visible: root.editing
+                visible: root.editing && !root.showLayoutSettings
                 s: area.s; wallpaper: root.wall
                 wallLayer: sharedWall
                 wallW: area.sw; wallH: area.sh
                 hiddenList: root.hiddenList
                 // right of the tile grid, left of the folder column, so it never covers anything
                 x: Math.max(area.leftX + area.grid.c * (area.cell + area.gap),
-                            Math.min((area.sw - width) / 2, area.foldX - 20 * area.s - width))
+                            Math.min((area.sw - width) / 2,
+                                     (area.foldersLeft ? area.sw - width - 40 * area.s
+                                                       : area.foldX - 20 * area.s - width)))
                 y: area.topY
                 onRestore: (key) => root.setHidden(key, false)
                 onDone: root.editing = false
                 animIcons: root.cfg.animIcons
                 onReset: root.resetLayout()
                 onToggleAnim: root.cfg.animIcons = !root.cfg.animIcons
+                onOpenLayout: root.showLayoutSettings = true
+            }
+
+            LayoutSettings {
+                visible: root.showLayoutSettings
+                s: area.s; cfg: root.cfg
+                wallpaper: root.wall; wallLayer: sharedWall
+                wallW: area.sw; wallH: area.sh
+                x: Math.max(24 * area.s, (area.sw - width) / 2)
+                y: Math.max(24 * area.s, area.topY)
+                onClose: { root.showLayoutSettings = false }
             }
 
         }

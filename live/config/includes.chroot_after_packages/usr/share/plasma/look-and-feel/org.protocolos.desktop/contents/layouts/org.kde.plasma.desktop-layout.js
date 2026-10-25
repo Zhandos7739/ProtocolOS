@@ -51,6 +51,7 @@ k.globalShortcut = "Alt+F1";
 top.addWidget("org.kde.plasma.appmenu");
 top.addWidget("org.kde.plasma.panelspacer");
 top.addWidget("org.protocolos.shield");
+top.addWidget("org.protocolos.audio");   // mic + headphones mute
 var tray = top.addWidget("org.kde.plasma.systemtray");
 tray.currentConfigGroup = ["General"];
 tray.writeConfig("iconSpacing", 2);
