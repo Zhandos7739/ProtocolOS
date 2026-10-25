@@ -8,7 +8,7 @@ TerminalService=org.kde.konsole.desktop
 Theme=Papirus-Dark
 [KDE]
 LookAndFeelPackage=org.protocolos.desktop
-AnimationDurationFactor=0.7
+AnimationDurationFactor=0.55
 SingleClick=true
 ScrollbarLeftClickNavigatesByPage=true
 [KScreen]

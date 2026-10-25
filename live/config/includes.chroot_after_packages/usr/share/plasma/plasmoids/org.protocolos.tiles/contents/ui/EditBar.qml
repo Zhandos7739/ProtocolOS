@@ -6,6 +6,9 @@ Item {
     id: bar
     property real s: 1
     property url wallpaper: ""
+    property Item wallLayer: null
+    property real wallW: 1920
+    property real wallH: 1080
     property var hiddenList: []
     signal restore(string key)
     signal done()
@@ -17,7 +20,11 @@ Item {
     width: row.width + 24 * s
     height: Math.round(52 * s)
 
-    Glass { anchors.fill: parent; radius: height / 2; wallpaper: bar.wallpaper; tint: 1.3 }
+    Glass {
+        anchors.fill: parent; radius: height / 2; tint: 1.3
+        wallpaper: bar.wallpaper; wallLayer: bar.wallLayer
+        wallW: bar.wallW; wallH: bar.wallH
+    }
     Row {
         id: row
         anchors.centerIn: parent

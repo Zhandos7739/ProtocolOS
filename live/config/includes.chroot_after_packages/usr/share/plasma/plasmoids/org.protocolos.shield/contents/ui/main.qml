@@ -23,7 +23,7 @@ PlasmoidItem {
     P5Support.DataSource {
         id: ex; engine: "executable"
         connectedSources: [root.statusCmd, root.tempCmd]
-        interval: 15000
+        interval: 45000
         onNewData: (src, data) => {
             if (src === root.statusCmd) {
                 var o = {}

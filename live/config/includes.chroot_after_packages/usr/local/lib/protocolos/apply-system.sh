@@ -39,9 +39,17 @@ C
 fi
 mkdir -p /etc/systemd/system/clamav-clamonacc.service.d
 printf '[Service]\nNice=10\nIOSchedulingClass=idle\n' > /etc/systemd/system/clamav-clamonacc.service.d/protocolos.conf
+mkdir -p /etc/systemd/system/clamav-daemon.service.d /etc/systemd/system/clamav-freshclam.service.d /etc/systemd/system/opensnitch.service.d /etc/systemd/system/opensnitchd.service.d /etc/systemd/system/preload.service.d
+printf '[Service]\nNice=10\nIOSchedulingClass=idle\n' > /etc/systemd/system/clamav-daemon.service.d/protocolos.conf
+printf '[Service]\nNice=15\nIOSchedulingClass=idle\n' > /etc/systemd/system/clamav-freshclam.service.d/protocolos.conf
+printf '[Service]\nNice=5\n' > /etc/systemd/system/opensnitch.service.d/protocolos.conf
+printf '[Service]\nNice=5\n' > /etc/systemd/system/opensnitchd.service.d/protocolos.conf
+printf '[Service]\nNice=15\nIOSchedulingClass=idle\n' > /etc/systemd/system/preload.service.d/protocolos.conf
+# BBR if the module exists (faster WAN, lower bufferbloat)
+modprobe tcp_bbr 2>/dev/null || true
 # сервисы
 for s in ufw apparmor opensnitch clamav-daemon clamav-freshclam clamav-clamonacc earlyoom preload fstrim.timer protocolos-firstboot protocolos-cpugov protocolos-sigs.timer protocolos-net-reask.timer protocolos-login NetworkManager sddm; do systemctl enable $s >/dev/null 2>&1 && log "enabled $s"; done
-for s in NetworkManager-wait-online.service systemd-networkd-wait-online.service ModemManager.service man-db.timer e2scrub_all.timer e2scrub_reap.service apt-daily.timer cups-browsed.service avahi-daemon.service; do systemctl disable $s >/dev/null 2>&1 && log "disabled $s"; done
+for s in NetworkManager-wait-online.service systemd-networkd-wait-online.service ModemManager.service man-db.timer e2scrub_all.timer e2scrub_reap.service apt-daily.timer apt-daily-upgrade.timer cups-browsed.service avahi-daemon.service; do systemctl disable $s >/dev/null 2>&1 && log "disabled $s"; done
 systemctl mask NetworkManager-wait-online.service >/dev/null 2>&1 || true
 # Flathub + Discord
 if command -v flatpak >/dev/null; then

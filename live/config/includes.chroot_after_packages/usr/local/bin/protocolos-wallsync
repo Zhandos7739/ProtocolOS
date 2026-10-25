@@ -1,10 +1,11 @@
 #!/bin/bash
 # ProtocolOS: keep lock-screen wallpaper swapped vs the desktop.
 # Dark (default): desktop night/black ↔ lock day. Light: the reverse.
-# Mode file: ~/.config/protocolos/theme (dark|light), seeded from /etc/xdg/protocolos/theme.
+# Waits on inotify when available instead of polling every few seconds.
 set -u
 MODE_FILE="$HOME/.config/protocolos/theme"
 SYS_MODE=/etc/xdg/protocolos/theme
+RC="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
 NIGHT_DEF=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg
 DAY_DEF=/usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg
 KW=$(command -v kwriteconfig6 || command -v kwriteconfig5)
@@ -34,7 +35,6 @@ pkg_of() {
   esac
 }
 
-# Lock image = opposite of current desktop wallpaper.
 opposite() {
   local src="${1#file://}" pkg
   pkg=$(pkg_of "$src")
@@ -44,17 +44,17 @@ opposite() {
     /usr/share/wallpapers/ProtocolOS-day)
       echo "$NIGHT_DEF"; return ;;
     /usr/share/wallpapers/ProtocolOS-*)
-      if echo "$src" | grep -q '/night/'; then
-        "$RESOLVE" "$pkg" day && return
-      else
-        "$RESOLVE" "$pkg" night && return
-      fi
+      case "$src" in
+        */night/*) "$RESOLVE" "$pkg" day && return ;;
+        *)         "$RESOLVE" "$pkg" night && return ;;
+      esac
       ;;
   esac
   if [ "$(mode)" = light ]; then echo "$NIGHT_DEF"; else echo "$DAY_DEF"; fi
 }
 
-while :; do
+sync_once() {
+  local cur n
   cur=$("$RESOLVE" --desktop 2>/dev/null || true)
   n=$(opposite "$cur")
   [ -z "$n" ] && n=$DAY_DEF
@@ -62,5 +62,22 @@ while :; do
     "$KW" --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "$n"
     last=$n
   fi
-  sleep 4
+}
+
+INOTIFY=$(command -v inotifywait || true)
+
+while :; do
+  sync_once
+  if [ -n "$INOTIFY" ]; then
+    # Wake on wallpaper/theme edits; timeout so we still catch external kwriteconfig races.
+    # shellcheck disable=SC2086
+    "$INOTIFY" -q -e modify,close_write,move,create \
+      --timeout 120 \
+      "$MODE_FILE" \
+      $([ -f "$RC" ] && printf '%s' "$RC") \
+      "$HOME/.config/kscreenlockerrc" \
+      2>/dev/null || true
+  else
+    sleep 30
+  fi
 done

@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Window
 import QtQuick.Layouts
-import QtQuick.Effects
 import QtQuick.Controls as QQC2
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
@@ -98,7 +97,7 @@ PlasmoidItem {
     P5Support.DataSource {
         id: wallSrc; engine: "executable"
         connectedSources: [root.wallCmd]
-        interval: 15000
+        interval: 60000
         onNewData: (src, data) => {
             var f = (data["stdout"] || "").trim().split("\n")[0]
             if (f === "" || (f[0] !== "/" && f.indexOf("file://") !== 0)) return
@@ -168,21 +167,23 @@ PlasmoidItem {
             if (p.x !== gp.x || p.y !== gp.y) gp = Qt.point(p.x, p.y)
         }
         Component.onCompleted: Qt.callLater(sync)
-        Timer { interval: 1500; running: true; repeat: true; onTriggered: area.sync() }
+        Timer { interval: 5000; running: true; repeat: true; onTriggered: area.sync() }
 
         // ---------- screen-relative geometry (reference: mockup at 1920x1080) ----------
         readonly property real sw: area.Window.width > 0 ? area.Window.width : Screen.width
         readonly property real sh: area.Window.height > 0 ? area.Window.height : Screen.height
+        // Cap scale on ultrawide so tiles do not balloon and waste GPU fill-rate.
+        readonly property real scaleCap: 1.25
         // mockup sizes are CSS px at 1280x800 and 1920x1080 alike: tile 150x170, gap 30, 4 columns,
         // card 820x270. Scale 1 there, smaller on small screens; everything shrinks together if the
         // tiles + label + card would not fit above the dock.
         readonly property int cols: 4
         readonly property int rows: Math.max(1, Math.ceil(root.appList.length / cols))
-        readonly property real base: Math.max(0.4, Math.min(Math.max(1, sh / 1080), sw / 1280, sh / 800))
+        readonly property real base: Math.max(0.4, Math.min(area.scaleCap, Math.max(1, sh / 1080), sw / 1280, sh / 800))
         readonly property real need: 80 + rows * 200 - 30 + 54 + 270 + 104
         readonly property real fitH: sh / need
         readonly property real fitW: sw / 1130
-        readonly property real s: Math.min(base, fitH, fitW)
+        readonly property real s: Math.min(base, fitH, fitW, area.scaleCap)
         readonly property real topY: Math.round(80 * s)
         readonly property real bottomY: sh - Math.round(104 * s)
         readonly property real leftX: Math.round(80 * s)
@@ -203,6 +204,14 @@ PlasmoidItem {
             x: -area.gp.x; y: -area.gp.y
             width: area.sw; height: area.sh
 
+            // One shared wallpaper blur for every Glass tile/card/bar on this desktop.
+            WallBlur {
+                id: sharedWall
+                wallpaper: root.wall
+                texWidth: Math.min(960, Math.max(640, Math.round(area.sw / 2)))
+                texHeight: Math.min(540, Math.max(360, Math.round(area.sh / 2)))
+            }
+
             // ---------- app tiles ----------
             Repeater {
                 model: root.appList
@@ -216,15 +225,20 @@ PlasmoidItem {
                     z: dragging ? 10 : 0
                     x: area.leftX + col * (area.cell + area.gap) + dx
                     y: area.topY + row * (Math.round(170 * area.s) + area.gap) + dy
-                    Behavior on x { enabled: !tile.dragging; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
-                    Behavior on y { enabled: !tile.dragging; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
+                    Behavior on x { enabled: !tile.dragging; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
+                    Behavior on y { enabled: !tile.dragging; NumberAnimation { duration: 140; easing.type: Easing.OutCubic } }
                     Wiggle { target: tile; running: root.editing && !tile.dragging; phase: index }
                     width: area.cell; height: Math.round(Math.round(170 * area.s))
                     scale: ma.pressed ? 0.95 : 1
-                    Behavior on scale { NumberAnimation { duration: 120 } }
+                    Behavior on scale { NumberAnimation { duration: 100 } }
                     readonly property real k: area.cell / 150
 
-                    Glass { anchors.fill: parent; radius: 28 * tile.k; hovered: ma.containsMouse || tile.kfocus; wallpaper: root.wall }
+                    Glass {
+                        anchors.fill: parent; radius: 28 * tile.k
+                        hovered: ma.containsMouse || tile.kfocus
+                        wallpaper: root.wall; wallLayer: sharedWall
+                        wallW: area.sw; wallH: area.sh
+                    }
                     readonly property bool kfocus: root.kbd === index && area.activeFocus
                     // keyboard focus ring
                     Rectangle { anchors.fill: parent; anchors.margins: -4 * tile.k; radius: 32 * tile.k; color: "transparent"
@@ -239,16 +253,11 @@ PlasmoidItem {
                         color: Qt.rgba(0, 0, 0, 0.25)
                         Kirigami.Icon { anchors.centerIn: parent; width: 12 * tile.k; height: width; source: "protocolos-badge" }
                     }
-                    // .ico box-shadow: 0 8px 20px rgba(0,0,0,.25)
-                    Item {
-                        id: icoSh; visible: false
-                        width: 124 * tile.k; height: width
-                        Rectangle { anchors.centerIn: parent; width: 84 * tile.k; height: width; radius: 24 * tile.k; color: "black" }
-                    }
-                    MultiEffect {
-                        source: icoSh; width: icoSh.width; height: icoSh.height
-                        x: (tile.width - width) / 2; y: tileCol.y + 8 * tile.k - 20 * tile.k
-                        autoPaddingEnabled: false; blurEnabled: true; blur: 1; blurMax: 20; opacity: 0.25
+                    // Cheap icon shadow (no MultiEffect blur)
+                    Rectangle {
+                        width: 84 * tile.k; height: width; radius: 24 * tile.k
+                        x: (tile.width - width) / 2; y: tileCol.y + 14 * tile.k
+                        color: Qt.rgba(0, 0, 0, 0.22); z: -1
                     }
                     Column {
                         id: tileCol
@@ -338,6 +347,8 @@ PlasmoidItem {
                 x: area.leftX; y: area.cardY
                 width: area.cardW; height: area.cardH
                 wallpaper: root.wall
+                wallLayer: sharedWall
+                wallW: area.sw; wallH: area.sh
                 animate: root.cfg.animIcons
                 EditDecor { k: area.s; radius: 28 * area.s; editing: root.editing; onHide: root.setHidden("card", true) }
             }
@@ -433,6 +444,8 @@ PlasmoidItem {
             EditBar {
                 visible: root.editing
                 s: area.s; wallpaper: root.wall
+                wallLayer: sharedWall
+                wallW: area.sw; wallH: area.sh
                 hiddenList: root.hiddenList
                 // right of the tile grid, left of the folder column, so it never covers anything
                 x: Math.max(area.leftX + area.grid.c * (area.cell + area.gap),

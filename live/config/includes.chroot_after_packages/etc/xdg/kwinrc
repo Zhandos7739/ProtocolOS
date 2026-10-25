@@ -3,12 +3,18 @@ blurEnabled=true
 contrastEnabled=true
 slidingpopupsEnabled=true
 wobblywindowsEnabled=false
+magnifierEnabled=false
+mousemarkEnabled=false
+thumbnailasideEnabled=false
+trackmouseEnabled=false
+waterEnabled=false
 [Effect-blur]
-BlurStrength=10
-NoiseStrength=2
+BlurStrength=8
+NoiseStrength=0
 [Compositing]
 LatencyPolicy=Low
-AllowTearing=false
+AllowTearing=true
+MaxFPS=60
 [Windows]
 ActiveScreenFollowsMouse=true
 SeparateScreenFocus=false
@@ -16,6 +22,9 @@ Placement=Centered
 FocusPolicy=ClickToFocus
 AutoRaise=false
 DelayFocusInterval=0
+BorderSnapZone=10
+WindowSnapZone=10
+CenterSnapZone=0
 [TabBox]
 MultiScreenMode=1
 [ModifierOnlyShortcuts]
@@ -28,3 +37,5 @@ TopLeft=
 TopRight=
 BottomLeft=
 BottomRight=
+[Wayland]
+InputMethod=

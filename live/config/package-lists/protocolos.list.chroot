@@ -63,6 +63,7 @@ systemd-zram-generator
 earlyoom
 preload
 linux-cpupower
+inotify-tools
 user-setup
 libnotify-bin
 qdbus-qt6
