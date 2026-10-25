@@ -40,6 +40,16 @@ _k_friendly_name=Буфер обмена
 _launch=none,none,Открыть буфер обмена
 Clear=none,none,Очистить буфер (кнопка в меню)
 
+[protocolos-notes.desktop]
+_k_friendly_name=Быстрые заметки
+_launch=Meta+N,none,Быстрые заметки
+
+[protocolos-camera.desktop]
+_k_friendly_name=Камера
+_launch=none,none,Камера
+Allow=none,none,Разрешить камеру
+Deny=none,none,Запретить камеру
+
 [kwin]
 _k_friendly_name=KWin
 Create Desktop=Meta+Ctrl+D,none,Создать рабочий стол
@@ -54,3 +64,14 @@ Show Desktop=Meta+D,none,Показать рабочий стол
 Window Operations Menu=Alt+F3,Alt+F3,Меню окна
 Walk Through Windows=Alt+Tab,Alt+Tab,Переключение окон
 Walk Through Windows (Reverse)=Alt+Shift+Tab,Alt+Shift+Tab,Переключение окон (обратно)
+# Snap Layouts (как Win+стрелки): половины и четверти
+Window Quick Tile Left=Meta+Left,Meta+Left,Окно влево (половина)
+Window Quick Tile Right=Meta+Right,Meta+Right,Окно вправо (половина)
+Window Maximize=Meta+Up,Meta+Up,Развернуть окно
+Window Minimize=Meta+Down,Meta+Down,Свернуть окно
+Window Quick Tile Top Left=Meta+Alt+Left,none,Четверть — верх-лево
+Window Quick Tile Top Right=Meta+Alt+Right,none,Четверть — верх-право
+Window Quick Tile Bottom Left=Meta+Alt+Down,none,Четверть — низ-лево
+Window Quick Tile Bottom Right=Meta+Alt+Up,none,Четверть — низ-право
+Window Quick Tile Top=Meta+Shift+Up,none,Окно вверх (половина)
+Window Quick Tile Bottom=Meta+Shift+Down,none,Окно вниз (половина)

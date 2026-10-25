@@ -412,6 +412,7 @@ PlasmoidItem {
                     QQC2.Menu {
                         id: tileMenu
                         QQC2.MenuItem { text: "Открыть"; onTriggered: tile.openApp() }
+                        QQC2.MenuItem { text: "Открыть в песочнице"; onTriggered: root.launch("/usr/local/bin/protocolos-sandbox --ask " + modelData[3]) }
                         QQC2.MenuItem { text: "Закрепить в доке"; onTriggered: root.pinToDock(modelData[0]) }
                         QQC2.MenuItem { text: "Скрыть с рабочего стола"; onTriggered: root.setHidden("app:" + modelData[0], true) }
                         QQC2.MenuItem { text: "Расположение…"; onTriggered: root.showLayoutSettings = true }

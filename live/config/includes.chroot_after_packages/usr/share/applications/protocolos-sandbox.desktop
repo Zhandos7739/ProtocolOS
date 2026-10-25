@@ -1,0 +1,18 @@
+[Desktop Entry]
+Type=Application
+Name=Песочница
+Name[ru]=Песочница
+Comment=Запуск в изоляции (firejail)
+Comment[ru]=Запуск в изоляции (firejail)
+Exec=/usr/local/bin/protocolos-sandbox --ask %F
+Icon=protocolos-badge
+Categories=System;Security;
+MimeType=application/x-executable;application/vnd.appimage;application/x-ms-dos-executable;application/x-desktop;
+NoDisplay=false
+StartupNotify=true
+Terminal=false
+Actions=Run;
+
+[Desktop Action Run]
+Name=Открыть в песочнице
+Exec=/usr/local/bin/protocolos-sandbox --ask %F

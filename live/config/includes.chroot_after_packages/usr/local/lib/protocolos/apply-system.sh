@@ -15,7 +15,10 @@ fi
 # SDDM: ночной бренд-фон (логин). Стол/блокировка меняются местами через wallsync (тёмная тема).
 T=/usr/share/sddm/themes/breeze; [ -d $T ] && printf '[General]\nbackground=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg\ntype=image\n' > $T/theme.conf.user
 # Исполняемые хелперы темы/обоев
-chmod +x /usr/local/bin/protocolos-wallsync /usr/local/bin/protocolos-wall-resolve /usr/local/bin/protocolos-theme /usr/local/bin/protocolos-sound /usr/local/bin/protocolos-audio /usr/local/bin/protocolos-desktop-settings /usr/local/bin/protocolos-screenshot /usr/local/bin/protocolos-files /usr/local/bin/protocolos-usb-ask /usr/local/bin/protocolos-usb-seed /usr/local/bin/protocolos-privacy /usr/local/bin/protocolos-clipboard /usr/local/bin/protocolos-welcome /usr/local/bin/protocolos-steam 2>/dev/null || true
+chmod +x /usr/local/bin/protocolos-wallsync /usr/local/bin/protocolos-wall-resolve /usr/local/bin/protocolos-theme /usr/local/bin/protocolos-sound /usr/local/bin/protocolos-audio /usr/local/bin/protocolos-desktop-settings /usr/local/bin/protocolos-screenshot /usr/local/bin/protocolos-files /usr/local/bin/protocolos-usb-ask /usr/local/bin/protocolos-usb-seed /usr/local/bin/protocolos-privacy /usr/local/bin/protocolos-clipboard /usr/local/bin/protocolos-welcome /usr/local/bin/protocolos-steam /usr/local/bin/protocolos-sandbox /usr/local/bin/protocolos-camera /usr/local/bin/protocolos-notes /usr/local/lib/protocolos/camera-acl.sh 2>/dev/null || true
+# камера: применить udev-запрет
+udevadm control --reload-rules 2>/dev/null || true
+udevadm trigger --subsystem-match=video4linux 2>/dev/null || true
 # USBGuard: группа для IPC (запросы «разрешить?»)
 getent group plugdev >/dev/null || groupadd -r plugdev 2>/dev/null || true
 mkdir -p /etc/usbguard /var/log/usbguard

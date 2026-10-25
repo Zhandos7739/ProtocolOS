@@ -67,6 +67,10 @@ apparmor-profiles-extra
 apparmor-utils
 polkitd
 pkexec
+# песочница
+firejail
+firejail-profiles
+bubblewrap
 # DNS-over-TLS
 systemd-resolved
 # --- performance ---

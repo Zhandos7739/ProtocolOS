@@ -90,16 +90,25 @@ watch_once() {
     fi
   done < <(mic_clients)
 
+  # камера: если кто-то пытается — предложить полный allow (иначе устройство закрыто)
   while IFS= read -r app; do
     [ -z "$app" ] && continue
     key=$(printf '%s' "cam:$app" | tr '/ ' '__')
     [ -f "$ASKED/$key" ] && continue
     touch "$ASKED/$key"
-    notify camera-web "Камера" "«$app» использует камеру"
-    if ! ask "Камера — ProtocolOS" "Разрешить «$app» использовать камеру?"; then
-      notify camera-web "Камера" "Закройте «$app», если доступ не нужен"
+    notify camera-web "Камера" "«$app» запрашивает камеру (сейчас запрещена)"
+    if ask "Камера — ProtocolOS" "«$app» хочет камеру.\n\nСейчас камера полностью запрещена.\nРазрешить доступ?"; then
+      /usr/local/bin/protocolos-camera allow --force >/dev/null 2>&1 || /usr/local/bin/protocolos-camera allow >/dev/null 2>&1 || true
+    else
+      /usr/local/bin/protocolos-camera deny >/dev/null 2>&1 || true
+      notify camera-web "Камера запрещена" "$app"
     fi
   done < <(cam_users)
+
+  # если камера ещё запрещена политикой — периодически поджимать ACL
+  if [ ! -f "$HOME/.config/protocolos/camera-allowed" ]; then
+    /usr/local/bin/protocolos-camera ensure-denied >/dev/null 2>&1 || true
+  fi
 }
 
 case "${1:-status}" in

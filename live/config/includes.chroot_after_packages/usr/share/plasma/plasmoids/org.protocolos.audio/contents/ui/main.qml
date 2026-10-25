@@ -75,8 +75,10 @@ PlasmoidItem {
                 active: root.camUse
                 onIcon: "protocolos-cam"
                 offIcon: "protocolos-cam-off"
-                tip: root.camUse ? ("Камера: " + root.camApps) : "Камера не используется"
-                onClicked: { } // индикатор; доступ через запрос privacy
+                tip: root.camUse
+                     ? ("Камера: " + root.camApps + " · клик — запретить/разрешить")
+                     : "Камера запрещена · клик — разрешить"
+                onClicked: ex.connectSource("/usr/local/bin/protocolos-camera toggle #" + Date.now())
             }
             AudioBtn {
                 muted: root.sinkMuted

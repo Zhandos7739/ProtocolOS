@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=KonqPopupMenu/Plugin
+MimeType=all/allfiles;inode/directory;application/x-executable;application/vnd.appimage;
+Actions=SandboxOpen;
+X-KDE-Priority=TopLevel
+
+[Desktop Action SandboxOpen]
+Name=Открыть в песочнице ProtocolOS
+Name[ru]=Открыть в песочнице ProtocolOS
+Icon=security-high
+Exec=/usr/local/bin/protocolos-sandbox --ask %F

@@ -12,17 +12,20 @@ for f in kglobalshortcutsrc spectaclerc krunnerrc dolphinrc klipperrc; do
     cp "/etc/xdg/$f" "$HOME/.config/$f"
   fi
 done
-# Meta+V = открыть историю буфера (не очистка)
-if [ ! -f "$HOME/.config/protocolos/shortcuts-v4.done" ]; then
+# Meta+V буфер; Meta+N заметки; Meta+стрелки snap
+if [ ! -f "$HOME/.config/protocolos/shortcuts-v5.done" ]; then
   if [ -f /etc/xdg/kglobalshortcutsrc ]; then
-    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q 'show-on-mouse-pos=Meta+V' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
+    if [ ! -f "$HOME/.config/kglobalshortcutsrc" ] || ! grep -q 'Window Quick Tile Left=Meta+Left' "$HOME/.config/kglobalshortcutsrc" 2>/dev/null; then
       cp /etc/xdg/kglobalshortcutsrc "$HOME/.config/kglobalshortcutsrc"
     fi
   fi
   [ -f /etc/xdg/klipperrc ] && cp /etc/xdg/klipperrc "$HOME/.config/klipperrc"
   [ -f /etc/xdg/krunnerrc ] && cp /etc/xdg/krunnerrc "$HOME/.config/krunnerrc"
-  touch "$HOME/.config/protocolos/shortcuts-v4.done"
+  touch "$HOME/.config/protocolos/shortcuts-v5.done"
 fi
+# камера запрещена, пока явно не разрешат
+/usr/local/bin/protocolos-camera ensure-denied >/dev/null 2>&1 || true
+mkdir -p "$HOME/.local/share/protocolos/notes"
 # USBGuard IPC
 groups 2>/dev/null | grep -q plugdev || true
 # kwin: 2 рабочих стола по умолчанию

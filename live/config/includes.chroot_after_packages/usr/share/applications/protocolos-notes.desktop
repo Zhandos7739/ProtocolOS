@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Быстрые заметки
+Name[ru]=Быстрые заметки
+Comment=Meta+N — быстрые заметки
+Comment[ru]=Meta+N — быстрые заметки
+Exec=/usr/local/bin/protocolos-notes
+Icon=protocolos-notes
+Categories=Utility;TextEditor;
+StartupNotify=false

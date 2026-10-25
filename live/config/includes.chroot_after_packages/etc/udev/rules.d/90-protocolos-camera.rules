@@ -1,0 +1,6 @@
+# ProtocolOS: камеры захвата по умолчанию без доступа (MODE 000).
+# Разрешение только через: protocolos-camera allow
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ENV{ID_V4L_CAPABILITIES}=="*:capture:*", MODE="0000", GROUP="video", TAG-="uaccess"
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", ENV{ID_V4L_CAPABILITIES}==":capture:", MODE="0000", GROUP="video", TAG-="uaccess"
+# запасной вариант, если capabilities пустые
+KERNEL=="video[0-9]*", SUBSYSTEM=="video4linux", MODE="0000", GROUP="video", TAG-="uaccess"

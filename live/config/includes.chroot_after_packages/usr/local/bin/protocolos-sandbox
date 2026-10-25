@@ -1,0 +1,64 @@
+#!/bin/bash
+# Песочница ProtocolOS: запуск приложения/файла в изоляции (firejail / bubblewrap).
+set -u
+FJ=$(command -v firejail || true)
+BW=$(command -v bwrap || true)
+
+notify() {
+  command -v notify-send >/dev/null || return 0
+  notify-send -a ProtocolOS -i security-high "$@"
+}
+
+if [ $# -lt 1 ]; then
+  echo "usage: $0 [--ask] <command|file> [args...]"
+  exit 2
+fi
+
+if [ "${1:-}" = "--ask" ]; then
+  shift
+  [ $# -ge 1 ] || exit 2
+  if command -v kdialog >/dev/null; then
+    if ! kdialog --title "Песочница — ProtocolOS" --yesno \
+      "Открыть в песочнице?\n\n$*\n\nДомашний каталог изолирован, камера недоступна."; then
+      exec "$@"
+    fi
+  fi
+fi
+
+target=$1; shift || true
+if [ -f "$target" ] && [ ! -x "$target" ]; then
+  set -- xdg-open "$target" "$@"
+else
+  set -- "$target" "$@"
+fi
+
+HOME_SB="${XDG_CACHE_HOME:-$HOME/.cache}/protocolos/sandbox-home"
+DL="$(xdg-user-dir DOWNLOAD 2>/dev/null || echo "$HOME/Downloads")"
+mkdir -p "$HOME_SB" "$HOME_SB/Downloads" "$HOME_SB/.config" "$DL"
+
+if [ -n "$FJ" ]; then
+  notify "Песочница" "Запуск в изоляции (firejail)"
+  exec "$FJ" --quiet --private="$HOME_SB" --private-tmp \
+    --novideo --nonewprivs --seccomp \
+    --whitelist="$DL" \
+    "$@"
+fi
+
+if [ -n "$BW" ]; then
+  notify "Песочница" "Запуск в изоляции (bubblewrap)"
+  # минимальный userspace bind
+  BWRAP_ARGS=(--die-with-parent --new-session
+    --ro-bind /usr /usr --proc /proc --dev /dev --tmpfs /tmp
+    --bind "$HOME_SB" "$HOME"
+    --bind "$DL" "$DL"
+    --setenv HOME "$HOME")
+  [ -d /lib ] && BWRAP_ARGS+=(--ro-bind /lib /lib)
+  [ -d /lib64 ] && BWRAP_ARGS+=(--ro-bind /lib64 /lib64)
+  [ -d /bin ] && BWRAP_ARGS+=(--ro-bind /bin /bin)
+  [ -d /sbin ] && BWRAP_ARGS+=(--ro-bind /sbin /sbin)
+  [ -d /etc ] && BWRAP_ARGS+=(--ro-bind /etc /etc)
+  exec "$BW" "${BWRAP_ARGS[@]}" "$@"
+fi
+
+notify "Песочница" "firejail не найден — обычный запуск"
+exec "$@"
