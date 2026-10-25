@@ -1,5 +1,5 @@
 /*
-    ProtocolOS glass unlock form (password path).
+    ProtocolOS lock password form — matches HTML .card field/btn geometry.
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
@@ -16,6 +16,9 @@ import org.kde.breeze.components
 FocusScope {
     id: sessionManager
 
+    property real scaleFactor: 1
+    readonly property real s: scaleFactor
+
     readonly property alias mainPasswordBox: passwordBox
     property bool lockScreenUiVisible: false
     property alias showPassword: passwordBox.showPassword
@@ -26,25 +29,21 @@ FocusScope {
     property alias userList: dummyUsers
     property alias actionItemsVisible: actionItemsLayout.visible
 
-    property int visibleBoundary: mapFromItem(loginButton, 0, 0).y
-    onHeightChanged: visibleBoundary = mapFromItem(loginButton, 0, 0).y + loginButton.height + Kirigami.Units.smallSpacing
+    property int visibleBoundary: mapFromItem(goBtn, 0, 0).y
+    onHeightChanged: visibleBoundary = mapFromItem(goBtn, 0, 0).y + goBtn.height + 8
 
     signal passwordResult(string password)
     signal userSelected()
 
-    implicitWidth: 400
+    implicitWidth: Math.round(404 * s)
     implicitHeight: col.implicitHeight
 
     function startLogin() {
-        loginButton.forceActiveFocus();
+        goBtn.forceActiveFocus();
         passwordResult(passwordBox.text);
     }
+    function playHighlightAnimation() { shake.restart() }
 
-    function playHighlightAnimation() {
-        shake.restart()
-    }
-
-    // Satisfy VirtualKeyboardLoader / stock API that touch userList
     ListView {
         id: dummyUsers
         visible: false
@@ -57,8 +56,7 @@ FocusScope {
         id: col
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 12
+        spacing: Math.round(16 * s)
 
         Text {
             id: notificationsLabel
@@ -66,7 +64,7 @@ FocusScope {
             horizontalAlignment: Text.AlignHCenter
             color: Qt.rgba(1, 0.75, 0.8, 0.95)
             font.family: "Inter"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * s)
             font.italic: true
             wrapMode: Text.WordWrap
             visible: text.length > 0
@@ -75,9 +73,9 @@ FocusScope {
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: (typeof kscreenlocker_userName !== "undefined") ? kscreenlocker_userName : ""
-            color: Qt.rgba(1, 1, 1, 0.92)
+            color: "white"
             font.family: "Inter"
-            font.pixelSize: 18
+            font.pixelSize: Math.round(18 * s)
             font.weight: Font.DemiBold
             style: Text.Raised
             styleColor: Qt.rgba(0, 0, 0, 0.35)
@@ -87,7 +85,7 @@ FocusScope {
         Item {
             id: fieldWrap
             Layout.fillWidth: true
-            Layout.preferredHeight: 52
+            Layout.preferredHeight: Math.round(52 * s)
 
             SequentialAnimation {
                 id: shake
@@ -97,9 +95,10 @@ FocusScope {
                 NumberAnimation { target: fieldWrap; property: "x"; to: 0; duration: 40 }
             }
 
+            // HTML .field
             Rectangle {
                 anchors.fill: parent
-                radius: 18
+                radius: Math.round(18 * s)
                 color: Qt.rgba(0, 0, 0, 0.28)
                 border.color: Qt.rgba(1, 1, 1, 0.45)
                 border.width: 1
@@ -107,16 +106,16 @@ FocusScope {
 
             RowLayout {
                 anchors.fill: parent
-                anchors.leftMargin: 14
-                anchors.rightMargin: 6
-                spacing: 6
+                anchors.leftMargin: Math.round(18 * s)
+                anchors.rightMargin: Math.round(6 * s)
+                spacing: Math.round(6 * s)
 
                 PlasmaExtras.PasswordField {
                     id: passwordBox
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     font.family: "Inter"
-                    font.pixelSize: 17
+                    font.pixelSize: Math.round(17 * s)
                     placeholderText: "Пароль"
                     focus: true
                     enabled: !authenticator.graceLocked
@@ -126,11 +125,7 @@ FocusScope {
                     color: "white"
                     placeholderTextColor: Qt.rgba(1, 1, 1, 0.55)
 
-                    onAccepted: {
-                        if (lockScreenUiVisible) {
-                            startLogin();
-                        }
-                    }
+                    onAccepted: if (lockScreenUiVisible) startLogin()
 
                     Connections {
                         target: root
@@ -152,9 +147,9 @@ FocusScope {
                 }
 
                 PlasmaComponents3.ToolButton {
-                    id: loginButton
-                    Layout.preferredHeight: 40
-                    Layout.preferredWidth: 40
+                    id: goBtn
+                    Layout.preferredHeight: Math.round(40 * s)
+                    Layout.preferredWidth: Math.round(40 * s)
                     Accessible.name: "Разблокировать"
                     icon.name: LayoutMirroring.enabled ? "go-previous" : "go-next"
                     onClicked: startLogin()
@@ -162,6 +157,45 @@ FocusScope {
                     Keys.onReturnPressed: clicked()
                 }
             }
+        }
+
+        // HTML .btn — primary unlock affordance
+        Item {
+            Layout.fillWidth: true
+            Layout.preferredHeight: Math.round(52 * s)
+
+            Rectangle {
+                anchors.fill: parent
+                radius: Math.round(18 * s)
+                color: unlockMa.containsMouse ? Qt.rgba(1, 1, 1, 0.30) : Qt.rgba(1, 1, 1, 0.22)
+                border.color: Qt.rgba(1, 1, 1, 0.55)
+                border.width: 1
+                Behavior on color { ColorAnimation { duration: 120 } }
+            }
+            Text {
+                anchors.centerIn: parent
+                text: "Разблокировать"
+                color: "white"
+                font.family: "Inter"
+                font.pixelSize: Math.round(18 * s)
+                font.weight: Font.Bold
+            }
+            MouseArea {
+                id: unlockMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: startLogin()
+            }
+        }
+
+        Text {
+            Layout.alignment: Qt.AlignHCenter
+            text: "Enter"
+            color: Qt.rgba(1, 1, 1, 0.55)
+            font.family: "Inter"
+            font.pixelSize: Math.round(13 * s)
+            font.weight: Font.Medium
         }
 
         component FailableLabel : Text {
@@ -172,7 +206,7 @@ FocusScope {
             text: label
             color: Qt.rgba(1, 1, 1, 0.85)
             font.family: "Inter"
-            font.pixelSize: 14
+            font.pixelSize: Math.round(14 * s)
             horizontalAlignment: Text.AlignHCenter
             Layout.fillWidth: true
 

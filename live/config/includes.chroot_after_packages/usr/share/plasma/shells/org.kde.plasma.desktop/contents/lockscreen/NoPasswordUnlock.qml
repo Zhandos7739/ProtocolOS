@@ -1,5 +1,5 @@
 /*
-    ProtocolOS glass unlock (passwordless / live session).
+    ProtocolOS glass unlock (passwordless) — same HTML .card language.
     SPDX-License-Identifier: GPL-2.0-or-later
 */
 
@@ -9,16 +9,16 @@ import QtQuick.Layouts
 Item {
     id: page
     focus: true
-
     property var userListModel
+    property real scaleFactor: 1
+    readonly property real s: scaleFactor > 0 ? scaleFactor : 1
 
     Keys.onEnterPressed: unlock()
     Keys.onReturnPressed: unlock()
     Keys.onSpacePressed: unlock()
-
     function unlock() { Qt.quit() }
 
-    implicitWidth: 400
+    implicitWidth: Math.round(404 * s)
     implicitHeight: col.implicitHeight
 
     ColumnLayout {
@@ -26,14 +26,14 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.verticalCenter: parent.verticalCenter
-        spacing: 14
+        spacing: Math.round(16 * s)
 
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: (typeof kscreenlocker_userName !== "undefined") ? kscreenlocker_userName : ""
-            color: Qt.rgba(1, 1, 1, 0.92)
+            color: "white"
             font.family: "Inter"
-            font.pixelSize: 18
+            font.pixelSize: Math.round(18 * s)
             font.weight: Font.DemiBold
             style: Text.Raised
             styleColor: Qt.rgba(0, 0, 0, 0.35)
@@ -47,33 +47,29 @@ Item {
             text: "Сеанс без пароля"
             color: Qt.rgba(1, 1, 1, 0.75)
             font.family: "Inter"
-            font.pixelSize: 15
+            font.pixelSize: Math.round(15 * s)
         }
 
         Item {
             Layout.fillWidth: true
-            Layout.preferredHeight: 52
+            Layout.preferredHeight: Math.round(52 * s)
 
             Rectangle {
                 anchors.fill: parent
-                radius: 18
-                color: unlockMa.containsMouse ? Qt.rgba(1, 1, 1, 0.28) : Qt.rgba(1, 1, 1, 0.18)
-                border.color: Qt.rgba(1, 1, 1, 0.5)
+                radius: Math.round(18 * s)
+                color: unlockMa.containsMouse ? Qt.rgba(1, 1, 1, 0.30) : Qt.rgba(1, 1, 1, 0.22)
+                border.color: Qt.rgba(1, 1, 1, 0.55)
                 border.width: 1
                 Behavior on color { ColorAnimation { duration: 120 } }
             }
-
             Text {
                 anchors.centerIn: parent
                 text: "Разблокировать"
                 color: "white"
                 font.family: "Inter"
-                font.pixelSize: 18
+                font.pixelSize: Math.round(18 * s)
                 font.weight: Font.Bold
-                style: Text.Raised
-                styleColor: Qt.rgba(0, 0, 0, 0.3)
             }
-
             MouseArea {
                 id: unlockMa
                 anchors.fill: parent
@@ -88,7 +84,7 @@ Item {
             text: "Enter · Пробел"
             color: Qt.rgba(1, 1, 1, 0.55)
             font.family: "Inter"
-            font.pixelSize: 13
+            font.pixelSize: Math.round(13 * s)
         }
     }
 

@@ -1,0 +1,50 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><style>
+*{box-sizing:border-box;margin:0}body{width:1920px;height:1080px;overflow:hidden;font-family:"Inter","SF Pro Display","Noto Sans",sans-serif;color:#fff;position:relative;
+background:url(wall-day.jpg) center/cover no-repeat #1a2038}
+.wave{position:absolute;inset:0;z-index:0;pointer-events:none}
+.dim{position:absolute;inset:0;background:rgba(10,0,30,.18);z-index:1}
+.glass{position:absolute;background:linear-gradient(145deg,rgba(255,255,255,.28),rgba(255,255,255,.08));backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%);border:1px solid rgba(255,255,255,.45);
+box-shadow:inset 0 1px 0 rgba(255,255,255,.8),inset 0 -1px 0 rgba(255,255,255,.15),inset 0 0 24px rgba(255,255,255,.18),1px 0 0 rgba(255,80,160,.35),-1px 0 0 rgba(80,200,255,.35),0 20px 50px rgba(10,0,40,.35);border-radius:28px;z-index:2}
+.glass::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(160deg,rgba(255,255,255,.55) 0,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 75%,rgba(255,255,255,.18));pointer-events:none;mix-blend-mode:overlay}
+.bar{left:16px;right:16px;top:12px;height:44px;border-radius:22px;display:flex;align-items:center;padding:0 22px;gap:22px;font-size:17px;font-weight:600}
+.bar .sp{flex:1}
+.pill{white-space:nowrap;padding:5px 12px;border-radius:14px;background:rgba(80,255,170,.25);border:1px solid rgba(140,255,200,.6);font-size:15px}
+.center{position:absolute;left:50%;top:210px;transform:translateX(-50%);text-align:center;z-index:2;width:520px}
+.brand{font-size:22px;font-weight:800;letter-spacing:.2px;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.time{font-size:128px;font-weight:300;line-height:1;margin-top:18px;text-shadow:0 4px 24px rgba(0,0,0,.35);font-variant-numeric:tabular-nums}
+.date{font-size:24px;font-weight:500;opacity:.9;margin-top:8px;text-shadow:0 2px 8px rgba(0,0,0,.35);text-transform:capitalize}
+.card{left:50%;top:560px;transform:translateX(-50%);width:460px;padding:28px 28px 24px;display:flex;flex-direction:column;align-items:center;gap:16px}
+.user{font-size:18px;font-weight:600;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.field{width:100%;height:52px;border-radius:18px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.45);display:flex;align-items:center;padding:0 18px;font-size:17px;font-weight:500}
+.field span{opacity:.55}
+.btn{width:100%;height:52px;border-radius:18px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;gap:10px}
+.hint{font-size:13px;opacity:.55;font-weight:500}
+</style></head><body>
+<svg class="wave" viewBox="0 0 1920 1080" preserveAspectRatio="none"><defs><linearGradient id="w1" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity=".0"/><stop offset=".5" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
+<path d="M0 700 C400 450 800 950 1200 640 S1800 380 1920 520 L1920 1080 0 1080Z" fill="rgba(255,255,255,.08)"/><path d="M0 700 C400 450 800 950 1200 640 S1800 380 1920 520" stroke="url(#w1)" stroke-width="3" fill="none"/>
+<path d="M0 380 C500 200 900 600 1400 360 S1850 250 1920 300" stroke="url(#w1)" stroke-width="2" fill="none"/></svg>
+<div class="dim"></div>
+<div class="glass bar"><b style="font-size:19px">◆ ProtocolOS</b><span style="opacity:.85;font-weight:500">Блокировка</span><span class="sp"></span>
+<span class="pill">Защита активна</span><span>RU</span><span id="barClock">Чт, 25 окт&nbsp; 21:01</span></div>
+<div class="center">
+  <div class="brand">◆ ProtocolOS</div>
+  <div class="time" id="bigTime">21:01</div>
+  <div class="date" id="bigDate">воскресенье, 25 октября</div>
+</div>
+<div class="glass card">
+  <div class="user">protocol</div>
+  <div class="field"><span>Пароль</span></div>
+  <div class="btn">Разблокировать</div>
+  <div class="hint">Enter</div>
+</div>
+<script>
+const ru=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'});
+const bar=new Intl.DateTimeFormat('ru-RU',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+function tick(){const d=new Date();
+document.getElementById('bigTime').textContent=d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+document.getElementById('bigDate').textContent=ru.format(d);
+document.getElementById('barClock').innerHTML=bar.format(d).replace(',', '&nbsp;');
+}
+tick();
+</script>
+</body></html>
