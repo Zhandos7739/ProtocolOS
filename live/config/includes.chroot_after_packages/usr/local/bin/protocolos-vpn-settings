@@ -21,7 +21,7 @@ while true; do
   [ "$conn" = 1 ] && state="Вкл · $(echo "$st" | awk -F= '/^active=/{print $2}')"
 
   choice=$($K --title "VPN — ProtocolOS (как Happ)" --menu \
-    "Статус: $state | Профилей: ${n:-0} | Активный: ${sel:-нет} | Подписка: ${sub:-не задана}" \
+    "Статус: $state | Профилей: ${n:-0} | Активный: ${sel:-нет} | Подписка: ${sub:-не задана} | Кнопка в панели по умолчанию скрыта" \
     toggle "Подключить / отключить" \
     pick "Выбрать сервер (профиль)" \
     sub "URL подписки…" \
@@ -29,6 +29,7 @@ while true; do
     import "Импорт файла (.conf / .ovpn)" \
     paste "Вставить конфиг (WireGuard / OpenVPN)" \
     delete "Удалить профиль" \
+    panel "Показать/скрыть кнопку VPN в панели…" \
     close "Закрыть" 2>/dev/null) || exit 0
 
   case "$choice" in
@@ -77,6 +78,9 @@ while true; do
       for p in "${lines[@]}"; do args+=("$p" "$p" off); done
       pick=$($K --title "Удалить" --radiolist "Профиль:" "${args[@]}" 2>/dev/null) || continue
       $K --yesno "Удалить «$pick»?" && "$VPN" delete "$pick"
+      ;;
+    panel)
+      exec /usr/local/bin/protocolos-power-settings
       ;;
     close|="") exit 0 ;;
   esac
