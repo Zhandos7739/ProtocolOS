@@ -12,8 +12,10 @@ KV=/usr/share/Kvantum; if [ -d $KV/KvArcDark ]; then
       $KV/KvArcDark/KvArcDark.kvconfig > $KV/ProtocolGlass/ProtocolGlass.kvconfig
   grep -q '^translucent_windows' $KV/ProtocolGlass/ProtocolGlass.kvconfig || sed -i '/^\[General\]/a translucent_windows=true\nblurring=true\npopup_blurring=true\nreduce_window_opacity=18' $KV/ProtocolGlass/ProtocolGlass.kvconfig
 fi
-# SDDM фон
+# SDDM: ночной бренд-фон (логин). Стол/блокировка меняются местами через wallsync (тёмная тема).
 T=/usr/share/sddm/themes/breeze; [ -d $T ] && printf '[General]\nbackground=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg\ntype=image\n' > $T/theme.conf.user
+# Исполняемые хелперы темы/обоев
+chmod +x /usr/local/bin/protocolos-wallsync /usr/local/bin/protocolos-wall-resolve /usr/local/bin/protocolos-theme /usr/local/bin/protocolos-sound 2>/dev/null || true
 # ufw: deny incoming
 sed -i 's/^DEFAULT_INPUT_POLICY=.*/DEFAULT_INPUT_POLICY="DROP"/; s/^DEFAULT_OUTPUT_POLICY=.*/DEFAULT_OUTPUT_POLICY="ACCEPT"/' /etc/default/ufw 2>/dev/null
 sed -i 's/^ENABLED=.*/ENABLED=yes/' /etc/ufw/ufw.conf 2>/dev/null

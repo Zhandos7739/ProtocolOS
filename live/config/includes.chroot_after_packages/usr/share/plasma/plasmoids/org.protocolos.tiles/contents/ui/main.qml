@@ -16,8 +16,8 @@ PlasmoidItem {
     Plasmoid.backgroundHints: PlasmaCore.Types.NoBackground
     preferredRepresentation: fullRepresentation
 
-    // glass blurs the wallpaper the desktop really uses (falls back to the day file)
-    property url wall: "file:///usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg"
+    // glass blurs the wallpaper the desktop really uses (dark theme default = night)
+    property url wall: "file:///usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg"
     readonly property var apps: [
         ["firefox", "Firefox", "Браузер", "firefox-esr"],
         ["terminal", "Терминал", "Система", "konsole"],
@@ -93,18 +93,16 @@ PlasmoidItem {
         if (kind === "app") cfg.appOrder = all; else cfg.dirOrder = all
     }
 
-    // follow the wallpaper the user actually set (desktop containment config), every 30 s
-    readonly property string wallCmd: "awk -F= '/^\\[Containments\\]\\[[0-9]+\\]\\[Wallpaper\\]\\[org.kde.image\\]\\[General\\]/{g=1;next} /^\\[/{g=0} g&&$1==\"Image\"{print substr($0,7);exit}' \"$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc\" #wall"
+    // follow primary-screen wallpaper (resolves 1920/3840 packages via protocolos-wall-resolve)
+    readonly property string wallCmd: "/usr/local/bin/protocolos-wall-resolve --desktop #wall"
     P5Support.DataSource {
         id: wallSrc; engine: "executable"
         connectedSources: [root.wallCmd]
-        interval: 30000
+        interval: 15000
         onNewData: (src, data) => {
-            var f = (data["stdout"] || "").trim()
+            var f = (data["stdout"] || "").trim().split("\n")[0]
             if (f === "" || (f[0] !== "/" && f.indexOf("file://") !== 0)) return
             if (f.indexOf("://") < 0) f = "file://" + f
-            // a wallpaper *package* (directory) -> its 1920x1080 image
-            if (!/\.(jpe?g|png|webp)$/i.test(f)) f = f.replace(/\/$/, "") + "/contents/images/1920x1080.jpg"
             if (root.wall != f) root.wall = f
         }
     }

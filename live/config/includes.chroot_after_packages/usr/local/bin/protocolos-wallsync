@@ -1,21 +1,66 @@
 #!/bin/bash
-# ProtocolOS: экран блокировки берёт ночную версию текущих обоев рабочего стола.
-RC="$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc"
-DEF=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg
+# ProtocolOS: keep lock-screen wallpaper swapped vs the desktop.
+# Dark (default): desktop night/black ↔ lock day. Light: the reverse.
+# Mode file: ~/.config/protocolos/theme (dark|light), seeded from /etc/xdg/protocolos/theme.
+set -u
+MODE_FILE="$HOME/.config/protocolos/theme"
+SYS_MODE=/etc/xdg/protocolos/theme
+NIGHT_DEF=/usr/share/wallpapers/ProtocolOS/contents/images/1920x1080.jpg
+DAY_DEF=/usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg
 KW=$(command -v kwriteconfig6 || command -v kwriteconfig5)
+RESOLVE=/usr/local/bin/protocolos-wall-resolve
 last=""
-current(){ awk '/^\[Containments\]\[[0-9]+\]\[Wallpaper\]\[org\.kde\.image\]\[General\]/{f=1;next} /^\[/{f=0} f&&/^Image=/{sub(/^Image=/,"");print;exit}' "$RC" 2>/dev/null; }
-night_for(){
-  local p="${1#file://}"
-  case "$p" in /usr/share/wallpapers/ProtocolOS-*) ;; *) echo "$DEF"; return;; esac
-  local pkg; pkg=$(echo "$p" | sed -E 's#^(/usr/share/wallpapers/ProtocolOS-[A-Za-z]+).*#\1#')
-  [ -f "$pkg/contents/night/night.jpg" ] && echo "$pkg/contents/night/night.jpg" || echo "$DEF"
+
+mkdir -p "$(dirname "$MODE_FILE")"
+[ -f "$MODE_FILE" ] || cp "$SYS_MODE" "$MODE_FILE" 2>/dev/null || echo dark >"$MODE_FILE"
+
+mode() {
+  local m
+  m=$(tr -d '[:space:]' <"$MODE_FILE" 2>/dev/null || echo dark)
+  case "$m" in light|day) echo light ;; *) echo dark ;; esac
 }
+
+pkg_of() {
+  local p="${1#file://}"
+  case "$p" in
+    /usr/share/wallpapers/ProtocolOS-day/*|/usr/share/wallpapers/ProtocolOS-day)
+      echo /usr/share/wallpapers/ProtocolOS-day ;;
+    /usr/share/wallpapers/ProtocolOS/*|/usr/share/wallpapers/ProtocolOS)
+      echo /usr/share/wallpapers/ProtocolOS ;;
+    /usr/share/wallpapers/ProtocolOS-*)
+      echo "$p" | sed -E 's#^(/usr/share/wallpapers/ProtocolOS-[A-Za-z0-9_-]+).*#\1#' ;;
+    ProtocolOS*) echo "/usr/share/wallpapers/$p" ;;
+    *) echo "" ;;
+  esac
+}
+
+# Lock image = opposite of current desktop wallpaper.
+opposite() {
+  local src="${1#file://}" pkg
+  pkg=$(pkg_of "$src")
+  case "$pkg" in
+    /usr/share/wallpapers/ProtocolOS)
+      echo "$DAY_DEF"; return ;;
+    /usr/share/wallpapers/ProtocolOS-day)
+      echo "$NIGHT_DEF"; return ;;
+    /usr/share/wallpapers/ProtocolOS-*)
+      if echo "$src" | grep -q '/night/'; then
+        "$RESOLVE" "$pkg" day && return
+      else
+        "$RESOLVE" "$pkg" night && return
+      fi
+      ;;
+  esac
+  if [ "$(mode)" = light ]; then echo "$NIGHT_DEF"; else echo "$DAY_DEF"; fi
+}
+
 while :; do
-  n=$(night_for "$(current)")
-  if [ "$n" != "$last" ] && [ -n "$KW" ]; then
+  cur=$("$RESOLVE" --desktop 2>/dev/null || true)
+  n=$(opposite "$cur")
+  [ -z "$n" ] && n=$DAY_DEF
+  if [ "$n" != "$last" ] && [ -n "$KW" ] && [ -f "$n" ]; then
     "$KW" --file kscreenlockerrc --group Greeter --group Wallpaper --group org.kde.image --group General --key Image "$n"
-    last="$n"
+    last=$n
   fi
-  sleep 5
+  sleep 4
 done

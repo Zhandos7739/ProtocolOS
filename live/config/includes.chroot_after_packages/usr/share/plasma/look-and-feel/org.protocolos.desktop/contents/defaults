@@ -5,8 +5,14 @@ widgetStyle=kvantum
 [kdeglobals][Icons]
 Theme=Papirus-Dark
 
+[kdeglobals][Sounds]
+Theme=protocolos
+
 [plasmarc][Theme]
 name=protocolos-glass
 
 [Wallpaper]
 Image=ProtocolOS
+
+[kscreenlockerrc][Greeter][Wallpaper][org.kde.image][General]
+Image=/usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg
