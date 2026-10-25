@@ -3,17 +3,17 @@ import QtQuick.Shapes
 import org.kde.kirigami as Kirigami
 
 // App icon built from SVG layers (../images/anim) so parts can move.
-// Plays while hovered and briefly after a click; nothing runs otherwise.
+// Animates only on launch (kick/burst) — not on hover.
 Item {
     id: ic
     property string name: ""
-    property bool hovered: false
+    property bool hovered: false // kept for API; does not drive animation
     property bool enabled: true
     readonly property real u: width / 64
     // honours the Plasma animation speed; 0 = animations off
     readonly property real f: Kirigami.Units.longDuration / 200
     readonly property bool on: enabled && f > 0
-    readonly property bool play: on && (hovered || burst.running)
+    readonly property bool play: on && burst.running
     readonly property bool layered: ["firefox","antivirus","terminal","files","settings","store","discord","record","kdenlive","blackout","network"].indexOf(name) >= 0
     function d(ms) { return Math.max(1, Math.round(ms * f)) }
     function kick() { if (on) burst.restart() }
