@@ -1,0 +1,19 @@
+[Desktop Entry]
+Type=Application
+Name=VPN
+Name[ru]=VPN
+Comment=VPN как в Happ — подписка, профили, вкл/выкл
+Comment[ru]=VPN как в Happ — подписка, профили, вкл/выкл
+Exec=/usr/local/bin/protocolos-vpn-settings
+Icon=protocolos-vpn
+Categories=Network;Settings;
+StartupNotify=false
+Actions=Toggle;Settings;
+
+[Desktop Action Toggle]
+Name=Подключить / отключить
+Exec=/usr/local/bin/protocolos-vpn toggle
+
+[Desktop Action Settings]
+Name=Настройки VPN
+Exec=/usr/local/bin/protocolos-vpn-settings

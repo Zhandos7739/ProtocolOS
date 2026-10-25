@@ -41,6 +41,11 @@ hunspell-ru
 hyphen-ru
 mythes-ru
 network-manager
+# VPN (кнопка + настройки как Happ): WireGuard / OpenVPN
+wireguard
+wireguard-tools
+openvpn
+network-manager-openvpn
 pipewire-audio
 wireplumber
 locales

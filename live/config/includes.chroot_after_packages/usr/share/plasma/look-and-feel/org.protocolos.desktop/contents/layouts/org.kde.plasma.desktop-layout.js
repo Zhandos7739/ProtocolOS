@@ -57,6 +57,7 @@ k.globalShortcut = "Alt+F1";
 top.addWidget("org.kde.plasma.appmenu");
 top.addWidget("org.kde.plasma.panelspacer");
 top.addWidget("org.protocolos.shield");
+top.addWidget("org.protocolos.vpn");     // VPN кнопка (настройки как Happ)
 top.addWidget("org.protocolos.audio");   // mic + headphones mute
 // Переключатель виртуальных столов (как на Windows / Mac)
 var pager = top.addWidget("org.kde.plasma.pager");

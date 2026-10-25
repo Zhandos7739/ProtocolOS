@@ -1,0 +1,83 @@
+#!/bin/bash
+# Настройки VPN как в Happ: подписка, импорт, список серверов, выбор активного.
+set -u
+K=$(command -v kdialog || true)
+VPN=/usr/local/bin/protocolos-vpn
+[ -x "$VPN" ] || exit 1
+
+if [ -z "$K" ]; then
+  echo "нужен kdialog"; exit 1
+fi
+
+notify() { command -v notify-send >/dev/null && notify-send -a ProtocolOS -i protocolos-vpn "$@" || true; }
+
+while true; do
+  st=$("$VPN" status)
+  conn=$(echo "$st" | awk -F= '/^connected=/{print $2}')
+  sel=$(echo "$st" | awk -F= '/^selected=/{print $2}')
+  sub=$(echo "$st" | awk -F= '/^subscription=/{print $2}')
+  n=$(echo "$st" | awk -F= '/^profiles=/{print $2}')
+  state="Выкл"
+  [ "$conn" = 1 ] && state="Вкл · $(echo "$st" | awk -F= '/^active=/{print $2}')"
+
+  choice=$($K --title "VPN — ProtocolOS (как Happ)" --menu \
+    "Статус: $state | Профилей: ${n:-0} | Активный: ${sel:-нет} | Подписка: ${sub:-не задана}" \
+    toggle "Подключить / отключить" \
+    pick "Выбрать сервер (профиль)" \
+    sub "URL подписки…" \
+    refresh "Обновить подписку" \
+    import "Импорт файла (.conf / .ovpn)" \
+    paste "Вставить конфиг (WireGuard / OpenVPN)" \
+    delete "Удалить профиль" \
+    close "Закрыть" 2>/dev/null) || exit 0
+
+  case "$choice" in
+    toggle) "$VPN" toggle ;;
+    pick)
+      mapfile -t lines < <("$VPN" list | awk -F= '/^profile=/{print $2}')
+      if [ ${#lines[@]} -eq 0 ]; then
+        $K --title "VPN" --sorry "Нет профилей. Добавьте подписку или импортируйте .conf"
+        continue
+      fi
+      args=()
+      for p in "${lines[@]}"; do
+        on=off; [ "$p" = "$sel" ] && on=on
+        args+=("$p" "$p" "$on")
+      done
+      pick=$($K --title "Сервер" --radiolist "Выберите профиль:" "${args[@]}" 2>/dev/null) || continue
+      "$VPN" set-active "$pick"
+      if $K --title "VPN" --yesno "Подключить «$pick» сейчас?"; then
+        "$VPN" connect "$pick"
+      fi
+      ;;
+    sub)
+      cur=$("$VPN" status | awk -F= '/^subscription=/{print $2}')
+      url=$($K --title "Подписка VPN" --inputbox \
+        "Вставьте URL подписки (как в Happ).\nПоддерживаются WireGuard-конфиги и списки ссылок на .conf/.ovpn." \
+        "${cur}" 2>/dev/null) || continue
+      [ -n "$url" ] && "$VPN" set-sub "$url"
+      if $K --title "VPN" --yesno "Обновить подписку сейчас?"; then
+        "$VPN" update-sub
+      fi
+      ;;
+    refresh) "$VPN" update-sub ;;
+    import)
+      f=$($K --title "Импорт VPN" --getopenfilename "$HOME" "*.conf *.ovpn|" 2>/dev/null) || continue
+      [ -n "$f" ] && "$VPN" import "$f"
+      ;;
+    paste)
+      name=$($K --title "Имя профиля" --inputbox "Имя сервера:" "server" 2>/dev/null) || continue
+      text=$($K --title "Конфиг" --textinputbox "Вставьте содержимое WireGuard (.conf) или OpenVPN (.ovpn):" "" 2>/dev/null) || continue
+      printf '%s\n' "$text" | "$VPN" import-text "$name"
+      ;;
+    delete)
+      mapfile -t lines < <("$VPN" list | awk -F= '/^profile=/{print $2}')
+      [ ${#lines[@]} -eq 0 ] && continue
+      args=()
+      for p in "${lines[@]}"; do args+=("$p" "$p" off); done
+      pick=$($K --title "Удалить" --radiolist "Профиль:" "${args[@]}" 2>/dev/null) || continue
+      $K --yesno "Удалить «$pick»?" && "$VPN" delete "$pick"
+      ;;
+    close|="") exit 0 ;;
+  esac
+done

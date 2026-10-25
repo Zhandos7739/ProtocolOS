@@ -44,6 +44,12 @@ Clear=none,none,Очистить буфер (кнопка в меню)
 _k_friendly_name=Быстрые заметки
 _launch=Meta+N,none,Быстрые заметки
 
+[protocolos-vpn.desktop]
+_k_friendly_name=VPN
+_launch=none,none,VPN
+Toggle=Meta+Shift+V,none,VPN вкл/выкл
+Settings=none,none,Настройки VPN
+
 [protocolos-camera.desktop]
 _k_friendly_name=Камера
 _launch=none,none,Камера

@@ -103,7 +103,7 @@ E
     ;;
 esac
 
-$K --title "ProtocolOS" --msgbox "Готово.\n\n• Meta+V — буфер · Meta+N — заметки\n• Meta+←/→ — snap окон · Meta+↑ развернуть\n• Камера запрещена, пока не разрешите\n• ПКМ по файлу/плитке → песочница\n• Meta — меню / поиск" || true
+$K --title "ProtocolOS" --msgbox "Готово.\n\n• Meta+V — буфер · Meta+N — заметки\n• Meta+Shift+V — VPN · кнопка в панели\n• Meta+←/→ — snap окон\n• Камера запрещена, пока не разрешите\n• ПКМ → песочница · Meta — меню" || true
 touch "$DONE"
 notify "Настройка завершена" "Приятной работы в ProtocolOS"
 # фоном подтянуть Steam если сеть есть

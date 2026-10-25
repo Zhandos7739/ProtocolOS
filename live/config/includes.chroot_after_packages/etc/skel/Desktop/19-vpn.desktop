@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=VPN
+GenericName=Настройки VPN (Happ-стиль)
+Exec=/usr/local/bin/protocolos-vpn-settings
+Icon=protocolos-vpn
+Terminal=false

@@ -1,0 +1,14 @@
+{
+  "KPackageStructure": "Plasma/Applet",
+  "X-Plasma-API-Minimum-Version": "6.0",
+  "KPlugin": {
+    "Id": "org.protocolos.vpn",
+    "Name": "ProtocolOS VPN",
+    "Description": "VPN кнопка и профили как в Happ",
+    "Icon": "protocolos-vpn",
+    "Category": "System",
+    "Authors": [{"Name": "ProtocolOS"}],
+    "License": "GPL-2.0+",
+    "Version": "1.0"
+  }
+}
