@@ -1,0 +1,206 @@
+#!/bin/bash
+# ProtocolOS питание / спящий режим.
+# Конфиг: ~/.config/protocolos/power.conf (иначе /etc/xdg/protocolos/power.conf)
+set -u
+SYS=/etc/xdg/protocolos/power.conf
+USR="${XDG_CONFIG_HOME:-$HOME/.config}/protocolos/power.conf"
+UI="${XDG_CONFIG_HOME:-$HOME/.config}/protocolos/ui.conf"
+mkdir -p "$(dirname "$USR")"
+
+cfg_get() {
+  local key=$1 def=$2 f=$USR
+  [ -f "$f" ] || f=$SYS
+  [ -f "$f" ] || { echo "$def"; return; }
+  local v
+  v=$(awk -F= -v k="$key" '$1==k {print $2; exit}' "$f" 2>/dev/null | tr -d ' \r')
+  echo "${v:-$def}"
+}
+
+cfg_set() {
+  local key=$1 val=$2
+  mkdir -p "$(dirname "$USR")"
+  touch "$USR"
+  if grep -q "^${key}=" "$USR" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${val}|" "$USR"
+  else
+    echo "${key}=${val}" >> "$USR"
+  fi
+}
+
+ui_set() {
+  local key=$1 val=$2
+  mkdir -p "$(dirname "$UI")"
+  touch "$UI"
+  if grep -q "^${key}=" "$UI" 2>/dev/null; then
+    sed -i "s|^${key}=.*|${key}=${val}|" "$UI"
+  else
+    echo "${key}=${val}" >> "$UI"
+  fi
+}
+
+ui_get() {
+  local key=$1 def=$2
+  [ -f "$UI" ] || { echo "$def"; return; }
+  local v
+  v=$(awk -F= -v k="$key" '$1==k {print $2; exit}' "$UI" 2>/dev/null | tr -d ' \r')
+  echo "${v:-$def}"
+}
+
+set_brightness() {
+  local pct=$1
+  if command -v brightnessctl >/dev/null; then
+    brightnessctl -q set "${pct}%" 2>/dev/null && return 0
+  fi
+  if command -v qdbus6 >/dev/null; then
+    # Plasma BrightnessControl: max * pct/100
+    local max cur
+    max=$(qdbus6 org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement/Actions/BrightnessControl \
+      org.kde.Solid.PowerManagement.Actions.BrightnessControl.brightnessMax 2>/dev/null || echo 0)
+    if [ "${max:-0}" -gt 0 ] 2>/dev/null; then
+      cur=$(( max * pct / 100 ))
+      qdbus6 org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement/Actions/BrightnessControl \
+        org.kde.Solid.PowerManagement.Actions.BrightnessControl.setBrightness "$cur" >/dev/null 2>&1 && return 0
+    fi
+  fi
+  return 1
+}
+
+presleep_now() {
+  local br
+  br=$(cfg_get presleep_brightness 70)
+  set_brightness "$br" || true
+  # блокировка
+  if command -v qdbus6 >/dev/null; then
+    qdbus6 org.freedesktop.ScreenSaver /ScreenSaver Lock >/dev/null 2>&1 || \
+    qdbus6 org.kde.screensaver /ScreenSaver Lock >/dev/null 2>&1 || true
+  fi
+  loginctl lock-session 2>/dev/null || true
+}
+
+monitor_off_now() {
+  if command -v kscreen-doctor >/dev/null; then
+    # Wayland: dpms off
+    kscreen-doctor --dpms off >/dev/null 2>&1 && return 0
+  fi
+  if command -v xset >/dev/null && [ -n "${DISPLAY:-}" ]; then
+    xset dpms force off >/dev/null 2>&1 && return 0
+  fi
+  set_brightness 0 || true
+}
+
+full_sleep_now() {
+  local act
+  act=$(cfg_get full_action suspend)
+  case "$act" in
+    hibernate) systemctl hibernate 2>/dev/null || loginctl hibernate ;;
+    shutdown|poweroff) systemctl poweroff ;;
+    *) systemctl suspend 2>/dev/null || loginctl suspend ;;
+  esac
+}
+
+apply_kde() {
+  local lock mon full
+  lock=$(cfg_get presleep_lock 15)
+  mon=$(cfg_get monitor_off 20)
+  full=$(cfg_get full_sleep 180)
+  # минуты → секунды для PowerDevil
+  local mon_s=$((mon * 60))
+  local full_s=$((full * 60))
+  local dim_s=$((lock * 60))
+
+  local kw
+  kw=$(command -v kwriteconfig6 || command -v kwriteconfig5 || true)
+  local pmc="${XDG_CONFIG_HOME:-$HOME/.config}/powermanagementprofilesrc"
+  mkdir -p "$(dirname "$pmc")"
+  # базовый файл из xdg если нет
+  if [ ! -f "$pmc" ] && [ -f /etc/xdg/powermanagementprofilesrc ]; then
+    cp /etc/xdg/powermanagementprofilesrc "$pmc"
+  fi
+  if [ -n "$kw" ]; then
+    for profile in AC Battery; do
+      "$kw" --file "$pmc" --group "$profile" --group DPMSControl --key idleTime "$mon_s"
+      "$kw" --file "$pmc" --group "$profile" --group DimDisplay --key idleTime "$dim_s"
+      "$kw" --file "$pmc" --group "$profile" --group SuspendSession --key idleTime "$full_s"
+      "$kw" --file "$pmc" --group "$profile" --group SuspendSession --key suspendType 1
+    done
+  fi
+  # kscreenlocker: Timeout в минутах
+  local lrc="${XDG_CONFIG_HOME:-$HOME/.config}/kscreenlockerrc"
+  mkdir -p "$(dirname "$lrc")"
+  if [ -n "$kw" ]; then
+    "$kw" --file "$lrc" --group Daemon --key Autolock true
+    "$kw" --file "$lrc" --group Daemon --key Timeout "$lock"
+    "$kw" --file "$lrc" --group Daemon --key LockOnResume true
+  else
+    printf '[Daemon]\nTimeout=%s\nLockOnResume=true\nAutolock=true\n' "$lock" > "$lrc"
+  fi
+  # перечитать powerdevil
+  if command -v qdbus6 >/dev/null; then
+    qdbus6 org.kde.Solid.PowerManagement /org/kde/Solid/PowerManagement \
+      org.kde.Solid.PowerManagement.reparseConfiguration >/dev/null 2>&1 || true
+  fi
+}
+
+status() {
+  echo "presleep_lock=$(cfg_get presleep_lock 15)"
+  echo "presleep_brightness=$(cfg_get presleep_brightness 70)"
+  echo "monitor_off=$(cfg_get monitor_off 20)"
+  echo "full_sleep=$(cfg_get full_sleep 180)"
+  echo "full_action=$(cfg_get full_action suspend)"
+  echo "show_vpn_button=$(ui_get show_vpn_button "$(cfg_get show_vpn_button 0)")"
+}
+
+explain() {
+  cat <<EOF
+Спящий режим ProtocolOS (по умолчанию):
+
+  • Через $(cfg_get presleep_lock 15) мин простоя — ПРЕСПЯЩИЙ:
+      блокировка экрана, яркость $(cfg_get presleep_brightness 70)%
+
+  • Через $(cfg_get monitor_off 20) мин простоя — МОНИТОР ВЫКЛ
+      (через $(( $(cfg_get monitor_off 20) - $(cfg_get presleep_lock 15) )) мин после предспящего)
+
+  • Через $(cfg_get full_sleep 180) мин (3 ч) — ПОЛНЫЙ СОН / ВЫКЛ
+      действие: $(cfg_get full_action suspend)
+
+Кнопка VPN в панели: $([ "$(ui_get show_vpn_button "$(cfg_get show_vpn_button 0)")" = 1 ] && echo включена || echo выключена и скрыта)
+EOF
+}
+
+panel_vpn() {
+  local show=${1:-0}
+  ui_set show_vpn_button "$show"
+  cfg_set show_vpn_button "$show"
+  local js
+  if [ "$show" = 1 ]; then
+    js='var p=panels(); for(var i=0;i<p.length;i++){ if(p[i].location!=topEdge && p[i].location!=1) continue; var has=false; var w=p[i].widgets(); for(var j=0;j<w.length;j++){ if(w[j].type=="org.protocolos.vpn") has=true; } if(!has){ p[i].addWidget("org.protocolos.vpn"); } }'
+    # Plasma location top = 3 in some APIs; use simpler: all panels
+    js='panels().forEach(function(p){var has=false;p.widgets().forEach(function(w){if(w.type==="org.protocolos.vpn")has=true;});if(!has){try{p.addWidget("org.protocolos.vpn");}catch(e){}}});'
+  else
+    js='panels().forEach(function(p){p.widgets().slice().forEach(function(w){if(w.type==="org.protocolos.vpn"){w.remove();}});});'
+  fi
+  if command -v qdbus6 >/dev/null; then
+    qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "$js" >/dev/null 2>&1 || true
+  fi
+}
+
+case "${1:-status}" in
+  status) status ;;
+  explain|show) explain ;;
+  apply) apply_kde; echo ok ;;
+  set)
+    # set key value
+    cfg_set "${2:?}" "${3:?}"
+    apply_kde
+    ;;
+  presleep) presleep_now ;;
+  monitor-off) monitor_off_now ;;
+  full-sleep) full_sleep_now ;;
+  vpn-show) panel_vpn 1; echo ok ;;
+  vpn-hide) panel_vpn 0; echo ok ;;
+  settings) exec /usr/local/bin/protocolos-power-settings ;;
+  *)
+    echo "usage: $0 status|explain|apply|set <key> <val>|presleep|monitor-off|full-sleep|vpn-show|vpn-hide|settings"
+    exit 2
+    ;;
+esac

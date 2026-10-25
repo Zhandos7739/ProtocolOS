@@ -1,0 +1,8 @@
+[Greeter][Wallpaper][org.kde.image][General]
+Image=/usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg
+
+[Daemon]
+# Предспящий: автоблокировка через 15 минут простоя
+Timeout=15
+LockOnResume=true
+Autolock=true

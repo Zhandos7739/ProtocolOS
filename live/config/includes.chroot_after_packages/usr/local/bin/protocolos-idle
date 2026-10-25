@@ -1,0 +1,56 @@
+#!/bin/bash
+# Следит за простоем: 15м предспящий → 20м монитор → 3ч полный сон.
+# Дополняет PowerDevil (яркость 70% при блокировке).
+set -u
+P=/usr/local/bin/protocolos-power
+STATE="${XDG_CACHE_HOME:-$HOME/.cache}/protocolos/idle-state"
+mkdir -p "$(dirname "$STATE")"
+: > "$STATE"
+
+idle_ms() {
+  # Plasma / Screensaver
+  local ms
+  ms=$(qdbus6 org.freedesktop.ScreenSaver /ScreenSaver GetSessionIdleTime 2>/dev/null || true)
+  if [ -n "$ms" ] && [ "$ms" -ge 0 ] 2>/dev/null; then echo "$ms"; return; fi
+  ms=$(qdbus6 org.kde.screensaver /ScreenSaver GetSessionIdleTime 2>/dev/null || true)
+  if [ -n "$ms" ] && [ "$ms" -ge 0 ] 2>/dev/null; then echo "$ms"; return; fi
+  if command -v xprintidle >/dev/null && [ -n "${DISPLAY:-}" ]; then
+    xprintidle 2>/dev/null; return
+  fi
+  echo 0
+}
+
+flag() { grep -qx "$1" "$STATE" 2>/dev/null; }
+set_flag() { grep -qx "$1" "$STATE" 2>/dev/null || echo "$1" >> "$STATE"; }
+clear_flags() { : > "$STATE"; }
+
+while true; do
+  ms=$(idle_ms)
+  # сброс при активности (< 30 с)
+  if [ "${ms:-0}" -lt 30000 ] 2>/dev/null; then
+    clear_flags
+    sleep 5
+    continue
+  fi
+  lock_m=$("$P" status | awk -F= '/^presleep_lock=/{print $2}')
+  mon_m=$("$P" status | awk -F= '/^monitor_off=/{print $2}')
+  full_m=$("$P" status | awk -F= '/^full_sleep=/{print $2}')
+  lock_m=${lock_m:-15}; mon_m=${mon_m:-20}; full_m=${full_m:-180}
+  lock_ms=$((lock_m * 60000))
+  mon_ms=$((mon_m * 60000))
+  full_ms=$((full_m * 60000))
+
+  if [ "$ms" -ge "$lock_ms" ] && ! flag presleep; then
+    "$P" presleep
+    set_flag presleep
+  fi
+  if [ "$ms" -ge "$mon_ms" ] && ! flag monitor; then
+    "$P" monitor-off
+    set_flag monitor
+  fi
+  if [ "$ms" -ge "$full_ms" ] && ! flag full; then
+    set_flag full
+    "$P" full-sleep
+  fi
+  sleep 10
+done

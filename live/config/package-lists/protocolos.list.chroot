@@ -102,6 +102,8 @@ libnotify-bin
 qdbus-qt6
 wl-clipboard
 xclip
+brightnessctl
+xprintidle
 # --- installed system boot (UEFI + Secure Boot + dual boot) ---
 grub-efi-amd64-bin
 grub-efi-amd64-signed

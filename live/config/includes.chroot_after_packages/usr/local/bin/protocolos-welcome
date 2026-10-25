@@ -103,7 +103,7 @@ E
     ;;
 esac
 
-$K --title "ProtocolOS" --msgbox "Готово.\n\n• Meta+V — буфер · Meta+N — заметки\n• Meta+Shift+V — VPN · кнопка в панели\n• Meta+←/→ — snap окон\n• Камера запрещена, пока не разрешите\n• ПКМ → песочница · Meta — меню" || true
+$K --title "ProtocolOS" --msgbox "Готово.\n\n• Сон: 15 мин блок (яркость 70%) → 20 мин монитор → 3 ч сон\n• Настройки: «Спящий режим» (там же кнопка VPN)\n• VPN-кнопка по умолчанию скрыта\n• Meta+V буфер · Meta+N заметки · Meta+←/→ snap" || true
 touch "$DONE"
 notify "Настройка завершена" "Приятной работы в ProtocolOS"
 # фоном подтянуть Steam если сеть есть

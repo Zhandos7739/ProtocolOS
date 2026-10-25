@@ -2,6 +2,7 @@
 Image=/usr/share/wallpapers/ProtocolOS-day/contents/images/1920x1080.jpg
 
 [Daemon]
-Timeout=10
+# Предспящий: автоблокировка через 15 минут простоя
+Timeout=15
 LockOnResume=true
 Autolock=true

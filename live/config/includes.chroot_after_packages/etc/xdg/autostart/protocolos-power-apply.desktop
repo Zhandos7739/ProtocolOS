@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=ProtocolOS power apply
+Exec=/usr/local/bin/protocolos-power apply
+Icon=preferences-system-power-management
+NoDisplay=true
+OnlyShowIn=KDE;
+X-KDE-autostart-phase=1

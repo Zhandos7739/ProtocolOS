@@ -24,6 +24,16 @@ if [ ! -f "$HOME/.config/protocolos/shortcuts-v6.done" ]; then
   touch "$HOME/.config/protocolos/shortcuts-v6.done"
 fi
 mkdir -p "$HOME/.config/protocolos/vpn/profiles"
+# питание / спящий режим + UI (VPN скрыт по умолчанию)
+for f in power.conf ui.conf; do
+  if [ -f "/etc/xdg/protocolos/$f" ] && [ ! -f "$HOME/.config/protocolos/$f" ]; then
+    cp "/etc/xdg/protocolos/$f" "$HOME/.config/protocolos/$f"
+  fi
+done
+if [ ! -f "$HOME/.config/protocolos/power-applied.done" ]; then
+  /usr/local/bin/protocolos-power apply >/dev/null 2>&1 || true
+  touch "$HOME/.config/protocolos/power-applied.done"
+fi
 # камера запрещена, пока явно не разрешат
 /usr/local/bin/protocolos-camera ensure-denied >/dev/null 2>&1 || true
 mkdir -p "$HOME/.local/share/protocolos/notes"
