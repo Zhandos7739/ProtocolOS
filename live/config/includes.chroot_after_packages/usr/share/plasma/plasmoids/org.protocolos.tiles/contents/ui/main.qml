@@ -22,6 +22,10 @@ PlasmoidItem {
         ["firefox", "Firefox", "Браузер", "firefox-esr"],
         ["terminal", "Терминал", "Система", "konsole"],
         ["files", "Файлы", "Менеджер", "dolphin"],
+        ["writer", "Writer", "Word · ODT", "/usr/local/bin/protocolos-office writer"],
+        ["sheets", "Calc", "Excel · таблицы", "/usr/local/bin/protocolos-office calc"],
+        ["impress", "Impress", "PowerPoint", "/usr/local/bin/protocolos-office impress"],
+        ["pdf", "PDF", "Okular · EPUB", "/usr/local/bin/protocolos-office pdf"],
         ["calc", "Калькулятор", "Счёт", "kcalc"],
         ["steam", "Steam", "Proton · GameMode", "/usr/local/bin/protocolos-steam"],
         ["settings", "Настройки", "Система", "systemsettings"],
@@ -134,7 +138,7 @@ PlasmoidItem {
         onNewData: (src, data) => disconnectSource(src)
     }
     function resetLayout() {
-        cfg.appOrder = ["firefox","terminal","files","calc","steam","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
+        cfg.appOrder = ["firefox","terminal","files","writer","sheets","impress","pdf","calc","steam","settings","discord","store","antivirus","record","kdenlive","blackout","network"]
         cfg.dirOrder = ["projects","docs","down","pics","system","trash"]
         cfg.hiddenItems = ["app:record","app:kdenlive","app:blackout","app:network"]
         cfg.showCard = true

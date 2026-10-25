@@ -1,0 +1,57 @@
+[Default Applications]
+# PDF и документы
+application/pdf=org.kde.okular.desktop;
+application/x-gzpdf=org.kde.okular.desktop;
+application/x-bzpdf=org.kde.okular.desktop;
+application/epub+zip=org.kde.okular.desktop;
+application/vnd.ms-xpsdocument=org.kde.okular.desktop;
+image/vnd.djvu=org.kde.okular.desktop;
+image/vnd.djvu+multipage=org.kde.okular.desktop;
+# Word / текст
+application/msword=libreoffice-writer.desktop;
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=libreoffice-writer.desktop;
+application/vnd.oasis.opendocument.text=libreoffice-writer.desktop;
+application/vnd.oasis.opendocument.text-template=libreoffice-writer.desktop;
+application/rtf=libreoffice-writer.desktop;
+application/vnd.wordperfect=libreoffice-writer.desktop;
+text/rtf=libreoffice-writer.desktop;
+# Excel / таблицы
+application/vnd.ms-excel=libreoffice-calc.desktop;
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=libreoffice-calc.desktop;
+application/vnd.oasis.opendocument.spreadsheet=libreoffice-calc.desktop;
+application/vnd.oasis.opendocument.spreadsheet-template=libreoffice-calc.desktop;
+text/csv=libreoffice-calc.desktop;
+application/vnd.ms-excel.sheet.macroEnabled.12=libreoffice-calc.desktop;
+# PowerPoint / презентации
+application/vnd.ms-powerpoint=libreoffice-impress.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.presentation=libreoffice-impress.desktop;
+application/vnd.oasis.opendocument.presentation=libreoffice-impress.desktop;
+application/vnd.oasis.opendocument.presentation-template=libreoffice-impress.desktop;
+# Рисунки / Visio-подобные
+application/vnd.oasis.opendocument.graphics=libreoffice-draw.desktop;
+application/vnd.visio=libreoffice-draw.desktop;
+# Картинки
+image/jpeg=org.kde.gwenview.desktop;
+image/png=org.kde.gwenview.desktop;
+image/webp=org.kde.gwenview.desktop;
+image/gif=org.kde.gwenview.desktop;
+image/svg+xml=org.kde.gwenview.desktop;
+# Текст / код
+text/plain=org.kde.kate.desktop;
+text/markdown=org.kde.kate.desktop;
+text/x-python=org.kde.kate.desktop;
+# Архивы
+application/zip=org.kde.ark.desktop;
+application/x-7z-compressed=org.kde.ark.desktop;
+application/x-rar=org.kde.ark.desktop;
+application/x-tar=org.kde.ark.desktop;
+application/gzip=org.kde.ark.desktop;
+
+[Added Associations]
+application/pdf=org.kde.okular.desktop;
+application/msword=libreoffice-writer.desktop;
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=libreoffice-writer.desktop;
+application/vnd.ms-excel=libreoffice-calc.desktop;
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=libreoffice-calc.desktop;
+application/vnd.ms-powerpoint=libreoffice-impress.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.presentation=libreoffice-impress.desktop;

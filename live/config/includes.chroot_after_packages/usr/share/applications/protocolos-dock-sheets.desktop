@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Calc
+Comment=Таблицы Excel
+Exec=/usr/local/bin/protocolos-office calc
+Icon=protocolos-sheets
+StartupWMClass=libreoffice-calc
+NoDisplay=true
+Terminal=false

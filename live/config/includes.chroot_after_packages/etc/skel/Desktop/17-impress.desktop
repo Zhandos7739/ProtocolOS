@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Impress
+GenericName=Презентации
+Exec=/usr/local/bin/protocolos-office impress
+Icon=libreoffice-impress
+Terminal=false

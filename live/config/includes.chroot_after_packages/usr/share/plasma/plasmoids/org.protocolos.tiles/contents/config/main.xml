@@ -3,7 +3,7 @@
   <kcfgfile name=""/>
   <group name="General">
     <entry name="mode" type="String"><default>desktop</default></entry>
-    <entry name="appOrder" type="StringList"><default>firefox,terminal,files,calc,steam,settings,discord,store,antivirus,record,kdenlive,blackout,network</default></entry>
+    <entry name="appOrder" type="StringList"><default>firefox,terminal,files,writer,sheets,impress,pdf,calc,steam,settings,discord,store,antivirus,record,kdenlive,blackout,network</default></entry>
     <entry name="dirOrder" type="StringList"><default>projects,docs,down,pics,system,trash</default></entry>
     <entry name="hiddenItems" type="StringList"><default>app:record,app:kdenlive,app:blackout,app:network</default></entry>
     <entry name="animIcons" type="Bool"><default>true</default></entry>

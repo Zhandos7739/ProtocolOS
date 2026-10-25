@@ -26,7 +26,20 @@ qt6-style-kvantum
 papirus-icon-theme
 fonts-inter
 fonts-noto-core
+fonts-liberation
+fonts-dejavu-core
 xdg-user-dirs
+# --- офис: PDF / Word / Excel / PowerPoint и др. ---
+libreoffice-writer
+libreoffice-calc
+libreoffice-impress
+libreoffice-draw
+libreoffice-gtk3
+libreoffice-l10n-ru
+libreoffice-help-ru
+hunspell-ru
+hyphen-ru
+mythes-ru
 network-manager
 pipewire-audio
 wireplumber

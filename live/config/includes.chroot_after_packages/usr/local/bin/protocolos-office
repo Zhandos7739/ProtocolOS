@@ -1,0 +1,22 @@
+#!/bin/bash
+# Быстрый запуск офиса ProtocolOS: writer|calc|impress|draw|pdf|start [файл]
+set -u
+cmd="${1:-start}"
+[ $# -gt 0 ] && shift
+case "$cmd" in
+  writer|word|doc|docx) exec libreoffice --writer "$@" ;;
+  calc|excel|xls|xlsx|sheets) exec libreoffice --calc "$@" ;;
+  impress|ppt|pptx|power) exec libreoffice --impress "$@" ;;
+  draw|odg) exec libreoffice --draw "$@" ;;
+  pdf|okular) exec okular "$@" ;;
+  start|office)
+    if command -v libreoffice >/dev/null; then
+      exec libreoffice "$@"
+    fi
+    exec plasma-discover --search libreoffice
+    ;;
+  *)
+    echo "usage: $0 writer|calc|impress|draw|pdf|start [file]"
+    exit 2
+    ;;
+esac
