@@ -1,0 +1,22 @@
+[org.kde.spectacle.desktop]
+_k_friendly_name=Снимок экрана
+ActiveWindowScreenShot=Alt+Print,none,Снимок активного окна
+CurrentMonitorScreenShot=none,none,Снимок текущего монитора
+FullScreenScreenShot=Print,none,Снимок всего экрана
+OpenWithoutScreenshot=Meta+Shift+Print,none,Запустить Spectacle
+RectangularRegionScreenShot=Meta+Shift+S\tShift+Print,none,Снимок прямоугольной области
+RecordRegion=none,none,Запись области
+RecordScreen=none,none,Запись экрана
+RecordWindow=none,none,Запись окна
+SaveAsFullScreen=Meta+Print,none,Сохранить снимок всего экрана
+SaveAsCurrentScreen=none,none,Сохранить снимок текущего монитора
+SaveAsRectangularRegion=none,none,Сохранить снимок области
+SaveAsActiveWindow=none,none,Сохранить снимок активного окна
+
+[protocolos-screenshot.desktop]
+_k_friendly_name=ProtocolOS Скриншот
+_launch=none,none,ProtocolOS Скриншот
+FullClipboard=none,none,Экран в буфер
+RegionClipboard=none,none,Область в буфер
+WindowClipboard=none,none,Окно в буфер
+SaveFile=none,none,Сохранить экран в файл

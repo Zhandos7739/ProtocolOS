@@ -3,6 +3,19 @@
 xdg-user-dirs-update
 P=$HOME/.local/share/protocolos/places; mkdir -p "$P"
 DOC=$(xdg-user-dir DOCUMENTS); mkdir -p "$DOC/Проекты"
+# Папка для Win+Print Screen
+mkdir -p "$(xdg-user-dir PICTURES)/Screenshots" "$(xdg-user-dir VIDEOS)/Screencasts" 2>/dev/null || true
+# Горячие клавиши скриншотов (если пользователь ещё не менял)
+if [ ! -f "$HOME/.config/protocolos/shortcuts-screenshots.done" ]; then
+  mkdir -p "$HOME/.config/protocolos"
+  if [ -f /etc/xdg/kglobalshortcutsrc ] && [ ! -f "$HOME/.config/kglobalshortcutsrc" ]; then
+    cp /etc/xdg/kglobalshortcutsrc "$HOME/.config/kglobalshortcutsrc"
+  fi
+  if [ -f /etc/xdg/spectaclerc ] && [ ! -f "$HOME/.config/spectaclerc" ]; then
+    cp /etc/xdg/spectaclerc "$HOME/.config/spectaclerc"
+  fi
+  touch "$HOME/.config/protocolos/shortcuts-screenshots.done"
+fi
 lnk(){ cat > "$P/$1.desktop" <<E
 [Desktop Entry]
 Type=Link

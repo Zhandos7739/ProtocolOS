@@ -1,0 +1,28 @@
+[Desktop Entry]
+Type=Application
+Name=Скриншот
+Name[ru]=Скриншот
+Comment=Снимок экрана как в Windows (Print Screen)
+Comment[ru]=Снимок экрана как в Windows (Print Screen)
+Exec=/usr/local/bin/protocolos-screenshot gui
+Icon=spectacle
+Categories=Utility;Graphics;
+Keywords=screenshot;printscreen;spectacle;
+StartupNotify=false
+Actions=FullClipboard;RegionClipboard;WindowClipboard;SaveFile;
+
+[Desktop Action FullClipboard]
+Name=Весь экран в буфер (Print Screen)
+Exec=/usr/local/bin/protocolos-screenshot full
+
+[Desktop Action RegionClipboard]
+Name=Область (Win+Shift+S)
+Exec=/usr/local/bin/protocolos-screenshot region
+
+[Desktop Action WindowClipboard]
+Name=Активное окно (Alt+Print Screen)
+Exec=/usr/local/bin/protocolos-screenshot window
+
+[Desktop Action SaveFile]
+Name=Сохранить экран (Win+Print Screen)
+Exec=/usr/local/bin/protocolos-screenshot save
